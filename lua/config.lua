@@ -46,6 +46,7 @@ opt.timeoutlen = 300 -- Timeout length
 opt.swapfile = false -- Disable swap file
 opt.backup = false -- Disable backup file
 opt.undofile = true -- Enable undo file
+opt.autoread = true -- Reload buffers when changed on disk
 
 -- Security
 opt.modeline = false -- Disable modeline
@@ -163,6 +164,18 @@ vim.api.nvim_create_autocmd('FileType', {
 
 local augroup = vim.api.nvim_create_augroup("Config", { clear = true })
 
+---Reload buffers whose files changed on disk (`autoread` + `:checktime`).
+---@param force_redraw boolean|nil Force screen refresh after check (e.g. on focus restore)
+local function check_files_changed_on_disk(force_redraw)
+	if vim.fn.getcmdwintype() ~= "" then
+		return
+	end
+	vim.cmd("checktime")
+	if force_redraw then
+		vim.cmd("redraw")
+	end
+end
+
 -- Optimised autocmd patterns for better performance
 local function create_optimised_autocmds()
   -- `g:_nvim_os_window_focused`: Lualine `cond` for noisy segments; needs tmux `focus-events on`.
@@ -173,6 +186,20 @@ local function create_optimised_autocmds()
   local mousemove_saved_os_focus = nil
   ---Saved while unfocused; `lazyredraw` coalesces screen updates during background churn.
   local lazyredraw_saved_os_focus = nil
+
+  -- Poll while focused or unfocused; `:checktime` alone only runs on buffer/focus events.
+  local auto_reload_timer = vim.uv.new_timer()
+  auto_reload_timer:start(500, 500, vim.schedule_wrap(function()
+    check_files_changed_on_disk(false)
+  end))
+
+  vim.api.nvim_create_autocmd("FileChangedShellPost", {
+    group = augroup,
+    desc = "Notify when a buffer was reloaded from disk",
+    callback = function()
+      vim.notify("Reloaded file changed on disk", vim.log.levels.INFO)
+    end,
+  })
 
   vim.api.nvim_create_autocmd("FocusLost", {
     group = augroup,
@@ -225,6 +252,8 @@ local function create_optimised_autocmds()
         vim.o.guicursor = guicursor_saved_os_focus
         guicursor_saved_os_focus = nil
       end
+      -- After lazyredraw is restored so reloaded buffer content is visible immediately.
+      check_files_changed_on_disk(true)
       vim.schedule(function()
         pcall(function()
           local ok_tm, theme_manager = pcall(require, "core.theme-manager")
