@@ -475,7 +475,9 @@ local function julia_command(command)
 	end
 end
 
----Compile the current Typst file to PDF using the CLI (`typst c`).
+local typst_project = require("core.typst-project")
+
+---Compile the current Typst file to PDF using the CLI (`typst compile --root …`).
 local function typst_compile_current()
 	local current_file = vim.fn.expand("%:p")
 	if current_file == "" then
@@ -488,7 +490,8 @@ local function typst_compile_current()
 		return
 	end
 
-	local cmd = string.format('typst c "%s"', current_file)
+	local root, rel_input = typst_project.root_and_input(current_file)
+	local cmd = string.format('typst compile --root "%s" "%s"', root, rel_input)
 
 	vim.fn.jobstart(cmd, {
 		on_exit = function(_, exit_code)
@@ -519,11 +522,13 @@ local function typst_watch_current()
 		return
 	end
 
-	local cmd = string.format('typst w "%s"', current_file)
+	local root, rel_input = typst_project.root_and_input(current_file)
+	local cmd = string.format('typst watch --root "%s" "%s"', root, rel_input)
 
 	local Terminal = require("toggleterm.terminal").Terminal
 	local typst_watch = Terminal:new({
 		cmd = cmd,
+		dir = root,
 		hidden = true,
 		direction = "horizontal",
 		close_on_exit = false,
