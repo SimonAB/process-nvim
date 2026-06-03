@@ -4,6 +4,7 @@
 -- =============================================================================
 
 local PluginManager = {}
+local PluginReload = require("core.plugin-reload")
 local progress_handle = nil
 
 ---Get vim.pack plugin list (managed plugins).
@@ -121,7 +122,21 @@ function PluginManager.update_all_plugins()
 	end
 
 	if update_ok then
-		notify(string.format("Plugin updates complete (%d updated)", #updated_plugins), vim.log.levels.INFO, { timeout = 5000 })
+		local updated_names = {}
+		for _, plugin in ipairs(after_plugins) do
+			local prev = before[plugin.name]
+			if prev and plugin.rev and prev ~= plugin.rev then
+				updated_names[#updated_names + 1] = plugin.name
+				PluginReload.clear_plugins(plugin.name)
+			end
+		end
+		PluginReload.notify_restart_advice(updated_names)
+
+		local msg = string.format("Plugin updates complete (%d updated)", #updated_plugins)
+		if #updated_names > 0 then
+			msg = msg .. ". Restart Neovim if anything behaves oddly."
+		end
+		notify(msg, vim.log.levels.INFO, { timeout = 8000 })
 	else
 		notify("Plugin update failed: " .. tostring(err), vim.log.levels.ERROR, { timeout = 7000 })
 	end
@@ -154,7 +169,9 @@ function PluginManager.update_plugin(plugin_name)
 	end
 
 	if update_ok then
-		notify("✓ " .. plugin_name .. " updated", vim.log.levels.INFO)
+		PluginReload.clear_plugins(plugin_name)
+		PluginReload.notify_restart_advice({ plugin_name })
+		notify("✓ " .. plugin_name .. " updated (restart Neovim if behaviour looks wrong)", vim.log.levels.INFO)
 	else
 		notify("✗ Failed to update " .. plugin_name .. ": " .. tostring(err), vim.log.levels.ERROR)
 	end
@@ -321,6 +338,44 @@ function PluginManager.cleanup_confirm()
 	cleanup_next(1)
 end
 
+---Remove legacy pack/plugins/start trees duplicated by vim.pack (site/pack/core/opt).
+---@param opts? { dry_run?: boolean }
+---@return integer removed
+function PluginManager.prune_legacy_pack(opts)
+	opts = opts or {}
+	local dry_run = opts.dry_run == true
+	local legacy_root = vim.fn.stdpath("data") .. "/pack/plugins/start"
+	if vim.fn.isdirectory(legacy_root) ~= 1 then
+		return 0
+	end
+
+	local opt_root = vim.fn.stdpath("data") .. "/site/pack/core/opt"
+	local removed = 0
+
+	for name in vim.fs.dir(legacy_root) do
+		local legacy_path = legacy_root .. "/" .. name
+		if vim.fn.isdirectory(legacy_path) == 1 then
+			local managed = opt_root .. "/" .. name
+			if vim.fn.isdirectory(managed) == 1 then
+				if dry_run then
+					vim.notify("Would remove legacy duplicate: " .. legacy_path, vim.log.levels.INFO)
+				else
+					local ok = vim.fn.delete(legacy_path, "rf") == 0
+					if ok then
+						removed = removed + 1
+					end
+				end
+			end
+		end
+	end
+
+	if removed > 0 and not dry_run then
+		notify(string.format("Removed %d legacy plugin(s) from pack/plugins/start", removed), vim.log.levels.INFO)
+	end
+
+	return removed
+end
+
 -- Setup user commands
 function PluginManager.setup_commands()
 	vim.api.nvim_create_user_command("PluginUpdateAll", function()
@@ -347,6 +402,16 @@ function PluginManager.setup_commands()
 	vim.api.nvim_create_user_command("PluginCleanupConfirm", function()
 		PluginManager.cleanup_confirm()
 	end, { desc = "Confirm and remove orphaned plugins" })
+
+	vim.api.nvim_create_user_command("PluginPruneLegacy", function(opts)
+		local dry_run = opts.bang
+		local n = PluginManager.prune_legacy_pack({ dry_run = dry_run })
+		if dry_run then
+			notify("Dry run complete (see messages)", vim.log.levels.INFO)
+		elseif n == 0 then
+			notify("No legacy duplicates under pack/plugins/start", vim.log.levels.INFO)
+		end
+	end, { bang = true, desc = "Remove pack/plugins/start copies already in site/pack/core/opt (! = dry run)" })
 end
 
 -- Initialize the plugin manager

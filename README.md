@@ -133,7 +133,16 @@ Julia REPLs launch with `--threads=auto` for parallel computing. `<C-c>` recogni
 | `<leader>YTs` | Show current theme       |
 
 This configuration uses Flexoki from the fork [`SimonAB/flexoki-neovim`](https://github.com/SimonAB/flexoki-neovim)
-to provide transparent UI surfaces and a `light_high_contrast` light variant.
+for transparent UI surfaces (`flexoki-dark` / `flexoki-light`).
+
+### AI (CodeCompanion)
+
+| Key | Action |
+| --- | --- |
+| `<leader>Ac` | Chat (default adapter) |
+| `<leader>At` | Toggle chat |
+| `<leader>Ad` | Chat debug |
+| `<leader>Ao` | Chat (Ollama) |
 
 
 See [Keymaps Reference](docs/reference/keymaps.md).

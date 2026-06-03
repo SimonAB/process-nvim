@@ -45,7 +45,7 @@ execution, and strong LSP support for day-to-day scientific and technical work.
 - **LaTeX**: `\ll` compile, `\lv` forward search, Skim/Zathura inverse search
 - **Markdown**: `<Leader>Kp` preview, plus table editing mappings under `<Leader>Kt`
 - **Quarto**: `<Leader>Qp` preview and `<Leader>QR*` rendering shortcuts
-- **Typst**: `<localleader>tp` preview toggle and `<localleader>tc` PDF compile
+- **Typst**: `<localleader>tp` preview, `<localleader>tc` / `<localleader>tw` compile and watch (monorepo-aware `--root`)
 
 ### Scientific coding
 - **Julia REPL**: `<Leader>Jrh`, `<Leader>Jrv`, `<Leader>Jrf` launch layouts

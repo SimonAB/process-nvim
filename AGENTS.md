@@ -390,6 +390,7 @@ end, { desc = "Description" })
 | `<leader>T` | Terminal operations | `<leader>Tt` = Toggle terminal |
 | `<leader>W` | Window operations | `<leader>Wh` = Decrease width |
 | `<leader>X` | Diagnostics (Trouble) | `<leader>Xw` = Workspace diagnostics |
+| `<leader>A` | AI (CodeCompanion) | `<leader>Ac` = Chat |
 | `<leader>Y` | Toggle options | `<leader>Yw` = Toggle wrap |
 | `<localleader>l` | LaTeX (VimTeX) | `<localleader>ll` = Compile |
 | `<localleader>t` | Typst | `<localleader>tp` = Preview toggle, `tc` = `typst c`, `tw` = `typst w` |

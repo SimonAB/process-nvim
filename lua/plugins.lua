@@ -65,6 +65,7 @@ local plugins = {
 }
 
 local augroup = vim.api.nvim_create_augroup("VimPackHooks", { clear = true })
+local PluginReload = require("core.plugin-reload")
 
 ---Run a plugin build hook, if configured.
 ---@param ev table
@@ -107,6 +108,12 @@ vim.api.nvim_create_autocmd("PackChanged", {
 	group = augroup,
 	desc = "Run vim.pack plugin build hooks",
 	callback = run_build_hook,
+})
+
+vim.api.nvim_create_autocmd("PackChanged", {
+	group = augroup,
+	desc = "Clear stale Lua module cache after plugin install/update",
+	callback = PluginReload.on_pack_changed,
 })
 
 -- Install/register plugins, but defer loading to core/plugin-loader.lua phases.

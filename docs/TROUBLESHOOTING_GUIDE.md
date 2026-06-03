@@ -50,6 +50,16 @@ Common issues and solutions.
 - Check for syntax errors in individual plugin files
 - Verify plugin dependencies are installed
 
+#### gitsigns: `handle_on_lines` (a nil value) after plugin updates
+- Cause: Lua module cache (`package.loaded`) still holds an older `gitsigns.manager` while `attach.lua` expects the newer API.
+- Fix: quit and restart Neovim (recommended after `:PluginUpdateAll`).
+- In-session: `:lua require('core.plugin-reload').reload_gitsigns_if_stale()` then reopen buffers.
+- Prevention: `PackChanged` and the plugin manager clear caches on update; `PluginPruneLegacy` removes duplicate trees under `pack/plugins/start/`.
+
+#### Obsidian vault: slow gitsigns or huge `git status`
+- Large vaults with many unstaged notes keep gitsigns busy.
+- Optional: `scripts/daily-vault-commit.sh` (commit/push on a schedule; `install` for launchd on macOS). Set `OBSIDIAN_VAULT_PATH` if the vault is not the default iCloud Notebook path.
+
 #### Markdown preview not working
 - Ensure the plugin is built: check `~/.local/share/nvim/site/pack/core/opt/markdown-preview.nvim/app/bin/`
 - Use `<leader>Kp` to start preview

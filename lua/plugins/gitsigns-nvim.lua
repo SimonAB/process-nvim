@@ -1,7 +1,10 @@
 -- Configuration for gitsigns.nvim
 -- Git integration with enhanced visual indicators
 
+local PluginReload = require("core.plugin-reload")
 local ok_ts, ThemeSettings = pcall(require, "core.theme-settings")
+
+PluginReload.reload_gitsigns_if_stale()
 
 local ok, gitsigns = pcall(require, "gitsigns")
 if ok then
@@ -40,6 +43,14 @@ if ok then
 			col = 1,
 		},
 	})
+
+	if not PluginReload.gitsigns_healthy() then
+		vim.notify(
+			"gitsigns did not load cleanly. Quit and restart Neovim.",
+			vim.log.levels.WARN,
+			{ title = "gitsigns", timeout = 10000 }
+		)
+	end
 
 	-- Ensure gitsigns preview floats match which-key styling.
 	local group = vim.api.nvim_create_augroup("GitsignsUIStyle", { clear = true })

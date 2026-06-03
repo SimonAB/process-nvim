@@ -152,6 +152,11 @@ map("n", "<leader>Cs", function()
 		package.loaded[module] = nil
 	end
 
+	local ok_reload, PluginReload = pcall(require, "core.plugin-reload")
+	if ok_reload then
+		PluginReload.reload_gitsigns_if_stale()
+	end
+
 	vim.cmd("source " .. config_path .. "/init.lua")
 	print("✓ Configuration reloaded!")
 end, { desc = "Reload configuration" })

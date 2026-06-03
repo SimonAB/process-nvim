@@ -37,6 +37,17 @@
 - **`<C-c>` / `yic`**: VS Code–style `# %%` cell markers (`# %%`, `#%%`, optional spaces/title) for send and yank; detection order is fenced Quarto chunks, then `# %%` cells (when any marker exists in the buffer), then `##` sections for send only.
 - **Documentation**: **docs/reference/keymaps.md**, **docs/quickstart.md**, **docs/index.md** — block delimiter table and `yic` behaviour.
 
+### Plugin updates and cache hygiene
+- **`core.plugin-reload`**: Clears `package.loaded` prefixes after vim.pack updates; advises restart for plugins that cannot hot-reload cleanly (e.g. gitsigns, blink.cmp).
+- **gitsigns**: `reload_gitsigns_if_stale()` for in-session recovery; `PackChanged` hook clears caches when the pack changes.
+- **`:PluginPruneLegacy`**: Removes duplicate trees under `pack/plugins/start/` when the same plugin exists under `site/pack/core/opt/`.
+
+### AI (CodeCompanion)
+- **Keymaps** (`<leader>A*`): chat, toggle, debug, and Ollama adapter shortcuts; which-key group “AI”.
+
+### Documentation (Typst / vault / plugins)
+- **Typst**: monorepo `--root` behaviour documented; **Troubleshooting**: vault daily-commit script for large Obsidian repos; **AI** and **`:PluginPruneLegacy`** in keymaps reference.
+
 ---
 
 ## [Previous] - Documentation aligned with keymaps

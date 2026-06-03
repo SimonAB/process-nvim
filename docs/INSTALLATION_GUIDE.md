@@ -329,7 +329,9 @@ Test Typst:
 nvim test.typ
 ```
 
-In Neovim: `\tp` to toggle preview
+In Neovim: `\tp` to toggle preview, `\tc` to compile, `\tw` to watch.
+
+**Monorepo / shared packages**: compile, watch, and preview pass `--root` from `core.typst-project`. Set `TYPST_ROOT` to force a root, or place `typst.toml` (or a `shared/typst/` directory) at the project root so nested `.typ` files resolve imports correctly.
 
 ### Quarto Workflow
 

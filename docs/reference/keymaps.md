@@ -122,9 +122,11 @@ Buffer-local on `typ` / `typst` files (`<localleader>` is typically `\`):
 ```vim
 <localleader>tp " Toggle Typst preview (typst-preview.nvim when installed)
 <localleader>ts " Sync cursor in preview
-<localleader>tc " Compile PDF (`typst c`, CLI)
-<localleader>tw " Watch file (`typst w`, ToggleTerm)
+<localleader>tc " Compile PDF (`typst compile --root …`, CLI)
+<localleader>tw " Watch file (`typst watch --root …`, ToggleTerm)
 ```
+
+Project root is resolved by `core.typst-project`: `TYPST_ROOT` if set, else the nearest ancestor with `typst.toml` or `shared/typst/`, else the file’s directory. Preview and compile/watch use that root so monorepo layouts (shared packages) work without manual `--root` flags.
 
 ### Markdown/Quarto
 ```vim
@@ -316,6 +318,17 @@ After `<C-c>`, the cursor jumps to the start of the next detected block when one
 <Leader>Xq      " Quickfix
 ```
 
+## AI (CodeCompanion)
+
+```vim
+<Leader>Ac      " AI chat (default adapter)
+<Leader>At      " Toggle chat
+<Leader>Ad      " AI chat debug
+<Leader>Ao      " AI chat (Ollama adapter)
+```
+
+Requires CodeCompanion and configured adapters (see `lua/plugins/codecompanion-nvim.lua`).
+
 ## Plugin Management
 
 ```vim
@@ -323,6 +336,8 @@ After `<C-c>`, the cursor jumps to the start of the next detected block when one
 <Leader>CUs     " Show plugin status
 <Leader>CUc     " Cleanup orphaned plugins
 ```
+
+Command-line (not leader-mapped): `:PluginPruneLegacy` removes duplicate legacy trees under `pack/plugins/start/` when vim.pack already manages the same plugin under `site/pack/core/opt/`.
 
 ## Editor Basics
 
