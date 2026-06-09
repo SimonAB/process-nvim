@@ -12,11 +12,6 @@
 - **Commands**: Added `:ForgeStatus` and kept `:ForgeNext` as a backwards-compatible alias; added project/tag commands (`:ForgeMove`, `:ForgeProjectTags`, `:ForgeProjectTagAdd`, `:ForgeProjectTagRemove`) and `:ForgeCalendar`.
 - **Dashboard**: Updated the mini.nvim dashboard Forge shortcuts to match the new command set.
 
-### Documentation
-- **docs/reference/keymaps.md** and **AGENTS.md**: Forge descriptions updated to match the kanban/projects workflow and the new `<leader>F*` mappings.
-- **scripts/generate-docs.lua**: Leader group summary updated (Forge wording).
-- **docs/reference/keymaps.md**, **docs/quickstart.md**: Obsidian callout bindings and behaviour.
-
 ### Theme/UI
 - **Progress / plugin-update popup**: `core.progress-popup` buffers are flagged so global opacity autocmds still apply the shared which-key float chrome (`winblend` 0, `winhl` parity). Previously the update window could look blended next to Mason or which-key because `WinEnter` reapplied editor transparency.
 - **Cursor line highlight**: Disabled `cursorline` by default for a calmer editing surface.
@@ -31,22 +26,23 @@
 - **which-key**: `<leader>O!` grouped as “Callout”.
 
 ### Pack lock
-- **nvim-pack-lock.json**: Refreshed revisions for codecompanion.nvim, mason-lspconfig.nvim, mini.nvim, nvim-lspconfig, and vimtex.
+- **nvim-pack-lock.json**: Refreshed revisions for blink.cmp, blink.lib, codecompanion.nvim, gitsigns.nvim, mini.nvim, nvim-lspconfig, and nvim-tree.lua.
 
 ### Julia REPL (code blocks)
 - **`<C-c>` / `yic`**: VS Code–style `# %%` cell markers (`# %%`, `#%%`, optional spaces/title) for send and yank; detection order is fenced Quarto chunks, then `# %%` cells (when any marker exists in the buffer), then `##` sections for send only.
-- **Documentation**: **docs/reference/keymaps.md**, **docs/quickstart.md**, **docs/index.md** — block delimiter table and `yic` behaviour.
 
 ### Plugin updates and cache hygiene
 - **`core.plugin-reload`**: Clears `package.loaded` prefixes after vim.pack updates; advises restart for plugins that cannot hot-reload cleanly (e.g. gitsigns, blink.cmp).
 - **gitsigns**: `reload_gitsigns_if_stale()` for in-session recovery; `PackChanged` hook clears caches when the pack changes.
+- **`plugins.lua`**: Single `PackChanged` autocmd runs build hooks and module-cache hygiene together.
 - **`:PluginPruneLegacy`**: Removes duplicate trees under `pack/plugins/start/` when the same plugin exists under `site/pack/core/opt/`.
 
 ### AI (CodeCompanion)
 - **Keymaps** (`<leader>A*`): chat, toggle, debug, and Ollama adapter shortcuts; which-key group “AI”.
 
-### Documentation (Typst / vault / plugins)
-- **Typst**: monorepo `--root` behaviour documented; **Troubleshooting**: vault daily-commit script for large Obsidian repos; **AI** and **`:PluginPruneLegacy`** in keymaps reference.
+### Documentation
+- **Forge / Obsidian / Julia / AI**: **docs/reference/keymaps.md**, **AGENTS.md**, **docs/quickstart.md**, **docs/index.md** aligned with current maps.
+- **Typst / vault / plugins**: monorepo `--root` notes, **Troubleshooting** vault daily-commit script, **`:PluginPruneLegacy`** in keymaps reference; **scripts/README.md** indexes utility scripts; removed tracked `*.backup` artefact.
 
 ---
 

@@ -20,6 +20,7 @@ pack/
 debug_*
 *.tmp
 *.bak
+*.backup
 
 # Node.js and VitePress
 node_modules/

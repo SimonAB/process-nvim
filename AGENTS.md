@@ -69,20 +69,23 @@ plugin.setup({
 nvim/
 ├── init.lua                 # Entry point, minimal setup
 ├── lua/
-│   ├── config.lua          # Core editor settings
-│   ├── keymaps.lua         # All key mappings
-│   ├── plugins.lua         # Plugin definitions (vim.pack)
-│   ├── require.lua         # Plugin loading orchestration
-│   ├── core/               # Core functionality modules
-│   │   ├── theme-manager.lua
-│   │   ├── plugin-manager.lua
+│   ├── config.lua           # Core editor settings
+│   ├── keymaps.lua          # Loads keymaps-core + keymaps-plugins
+│   ├── keymaps-core.lua     # Plugin-independent keymaps
+│   ├── keymaps-plugins.lua  # Plugin keymaps (deferred)
+│   ├── plugins.lua          # vim.pack definitions and PackChanged hooks
+│   ├── core/                # Core functionality modules
 │   │   ├── plugin-loader.lua
-│   │   └── ...
-│   └── plugins/            # Individual plugin configurations
+│   │   ├── plugin-manager.lua
+│   │   ├── plugin-reload.lua
+│   │   ├── theme-manager.lua
+│   │   ├── theme-picker.lua
+│   │   └── typst-project.lua
+│   └── plugins/             # Individual plugin configurations
 │       ├── plugin-name.lua
 │       └── ...
-├── docs/                   # Documentation
-└── scripts/                # Utility scripts
+├── docs/                    # VitePress documentation
+└── scripts/                 # Utility scripts (see scripts/README.md)
 ```
 
 ### File Naming
@@ -385,6 +388,8 @@ end, { desc = "Description" })
 | `<leader>L` | LSP operations | `<leader>Ll` = List servers |
 | `<leader>M` | Mason operations | `<leader>Mm` = Open Mason |
 | `<leader>O` | Obsidian operations | `<leader>On` = New note |
+| `<leader>O!` | Obsidian callouts | `<leader>O!n` = Note callout |
+| `<leader>CU` | Plugin updates (vim.pack) | `<leader>CUa` = Update all |
 | `<leader>Q` | Quarto operations | `<leader>Qp` = Preview |
 | `<leader>S` | Search operations | `<leader>Sp` = Search in project |
 | `<leader>T` | Terminal operations | `<leader>Tt` = Toggle terminal |
@@ -618,5 +623,5 @@ If you encounter patterns not covered here or need clarification:
 
 ---
 
-**Last Updated**: 2025-01-XX
+**Last Updated**: 2026-06-03
 **Maintained By**: Configuration maintainers

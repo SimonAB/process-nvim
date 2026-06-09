@@ -413,14 +413,23 @@ nvr --servername /tmp/nvim_server --remote-silent +10 "/absolute/path/to/test.te
 
 Press `<Space>` (500ms delay) to view commands grouped by functionality:
 
+- **A**: AI (CodeCompanion)
 - **B**: Buffer operations
 - **C**: Configuration management
+- **CU**: Plugin updates (vim.pack)
+- **F**: Forge (kanban / projects)
+- **R**: Frecency (recent files)
 - **G**: Git operations
 - **J**: Julia development
+- **K**: Markdown preview
 - **L**: LSP operations
 - **M**: Mason package management
+- **O**: Obsidian operations (`O!` = callouts)
 - **Q**: Quarto operations
+- **S**: Search operations
 - **T**: Terminal operations
+- **W**: Window operations
+- **X**: Diagnostics (Trouble)
 - **Y**: Toggle options
 
 ### Search Keymaps
@@ -465,6 +474,7 @@ local plugins = {
 - [Keymaps Reference](reference/keymaps.md)
 - [Installation Guide](INSTALLATION_GUIDE.md)
 - [Troubleshooting Guide](TROUBLESHOOTING_GUIDE.md)
+- [Utility scripts](https://github.com/SimonAB/process-nvim/blob/main/scripts/README.md) — SyncTeX helpers, vault daily commit, config tests, doc generator
 
 ---
 

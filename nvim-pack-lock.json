@@ -13,11 +13,11 @@
       "src": "https://github.com/rafi/awesome-vim-colorschemes"
     },
     "blink.cmp": {
-      "rev": "56507d063ff412baf49a359e7f57d8473a8b6547",
+      "rev": "b02ac65634bdb8af2dcc4eb6c807c060e1e15ae6",
       "src": "https://github.com/Saghen/blink.cmp"
     },
     "blink.lib": {
-      "rev": "41bc1199dd1f5f0687efbd522061b22002c2d4c5",
+      "rev": "b127d48bf8e9ac9cf41f6e0fbead317503f76558",
       "src": "https://github.com/Saghen/blink.lib"
     },
     "bufferline.nvim": {
@@ -29,7 +29,7 @@
       "src": "https://github.com/catppuccin/nvim"
     },
     "codecompanion.nvim": {
-      "rev": "b1cbe52ecd71e7b0ed43ac1dc6eb3aab4099db00",
+      "rev": "6cbbcb4503430644f04ea5f087c8e2ea4cdc6f6e",
       "src": "https://github.com/olimorris/codecompanion.nvim"
     },
     "flexoki-neovim": {
@@ -41,7 +41,7 @@
       "src": "https://github.com/projekt0n/github-nvim-theme"
     },
     "gitsigns.nvim": {
-      "rev": "6d808f99bd63303646794406e270bd553ad7792e",
+      "rev": "25050e4ed39e628282831d4cbecb1850454ce915",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "gruvbox.nvim": {
@@ -69,7 +69,7 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "9d0b9b7188d5c24b5a87f0d8b383ec8bda7a0de4",
+      "rev": "ff8b3580935818ef2f21bdd651f057a2ae071eab",
       "src": "https://github.com/echasnovski/mini.nvim"
     },
     "nord-vim": {
@@ -77,11 +77,11 @@
       "src": "https://github.com/arcticicestudio/nord-vim"
     },
     "nvim-lspconfig": {
-      "rev": "9573948c38bfabeec353ae7dd7d3ffec4c506a6b",
+      "rev": "ed19590a3a9792901553c388d1aadafce012f80d",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
-      "rev": "07f541fcaa4a5ae019598240362449ab7e9812b3",
+      "rev": "82f58063d67defc620e1ef8be606fc62a7b5dc1e",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {

@@ -23,8 +23,9 @@ function DocGenerator.generate_plugin_reference()
 
     for _, plugin in ipairs(plugins) do
         local purpose = plugin.name:gsub("-", " "):gsub("_", " ")
+        local url = plugin.src or plugin.url or ""
         table.insert(content, string.format("| %s | %s | %s |",
-            plugin.name, plugin.url, purpose))
+            plugin.name, url, purpose))
     end
 
     table.insert(content, "")
@@ -46,8 +47,10 @@ function DocGenerator.generate_keymaps_summary()
 
 ## Leader Key Groups
 
+- **A**: AI (CodeCompanion)
 - **B**: Buffer operations
 - **C**: Configuration management
+- **CU**: Plugin updates (vim.pack)
 - **F**: Forge (kanban / projects)
 - **R**: Frecency (recent files)
 - **G**: Git operations
@@ -55,8 +58,7 @@ function DocGenerator.generate_keymaps_summary()
 - **K**: Markdown preview
 - **L**: LSP operations
 - **M**: Mason package management
-- **O**: Obsidian operations
-- **CU**: Plugin updates (pack)
+- **O**: Obsidian operations (`O!` = callouts)
 - **Q**: Quarto operations
 - **S**: Search operations
 - **T**: Terminal operations
@@ -72,6 +74,7 @@ function DocGenerator.generate_keymaps_summary()
 - `<C-s>`: Quick save
 - `<Leader>q`: Close buffer
 - `<Leader>Oc`: Toggle checkbox (Obsidian)
+- `<localleader>tp`: Typst preview toggle
 
 ## LSP Navigation
 

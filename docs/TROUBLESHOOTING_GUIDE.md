@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues and solutions.
+Common issues and solutions. Utility scripts are listed in [scripts/README.md](https://github.com/SimonAB/process-nvim/blob/main/scripts/README.md).
 
 ### LaTeX Inverse Search Issues
 

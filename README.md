@@ -151,25 +151,23 @@ See [Keymaps Reference](docs/reference/keymaps.md).
 
 ```
 ~/.config/nvim/
-├── init.lua              # Entry point
+├── init.lua                 # Entry point
 ├── lua/
-│   ├── config.lua        # Editor settings
-│   ├── keymaps-core.lua  # Core keymaps (plugin-independent)
-│   ├── keymaps-plugins.lua # Plugin keymaps (deferred)
-│   ├── keymaps.lua       # Compatibility wrapper (loads both)
-│   ├── plugins.lua       # Plugin definitions
-│   ├── core/             # Core functionality
-│   │   ├── theme-manager.lua
+│   ├── config.lua           # Editor settings
+│   ├── keymaps.lua          # Loads keymaps-core + keymaps-plugins
+│   ├── keymaps-core.lua     # Core keymaps (plugin-independent)
+│   ├── keymaps-plugins.lua  # Plugin keymaps (deferred)
+│   ├── plugins.lua          # vim.pack plugin list and hooks
+│   ├── core/
+│   │   ├── plugin-loader.lua
 │   │   ├── plugin-manager.lua
-│   │   └── theme-picker.lua
-│   └── plugins/          # Plugin configurations
-│       ├── blink-cmp.lua
-│       ├── nvim-lspconfig.lua
-│       ├── telescope.lua
-│       ├── toggleterm-nvim.lua
-│       └── vimtex.lua
-├── docs/                 # Documentation
-└── scripts/              # Utility scripts
+│   │   ├── plugin-reload.lua
+│   │   ├── theme-manager.lua
+│   │   ├── theme-picker.lua
+│   │   └── typst-project.lua
+│   └── plugins/             # Per-plugin setup
+├── docs/                    # VitePress site
+└── scripts/                 # SyncTeX, vault commit, config tests (see scripts/README.md)
 ```
 
 ## Customisation

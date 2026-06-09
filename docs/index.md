@@ -38,6 +38,7 @@ execution, and strong LSP support for day-to-day scientific and technical work.
 - [Quick Start](/quickstart) - essential keymaps and first workflow checks
 - [Keymaps Reference](/reference/keymaps) - complete leader/localleader map catalogue
 - [Troubleshooting](/TROUBLESHOOTING_GUIDE) - fixes for plugin, LSP, terminal, and SyncTeX issues
+- [Utility scripts](https://github.com/SimonAB/process-nvim/blob/main/scripts/README.md) - SyncTeX, vault commit, config tests
 
 ## Core Workflows
 

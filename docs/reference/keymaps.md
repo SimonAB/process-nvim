@@ -55,7 +55,22 @@ Complete keymap reference for process-nvim, organised by functionality.
 ```
 
 ### Forge (kanban / projects)
-See `lua/plugins/forge-nvim.lua` for the full `<Leader>F*` map set (e.g. `<Leader>Fs` status, `<Leader>Fb` board, `<Leader>Fm` move).
+Finder-tag kanban workflow (see `lua/plugins/forge-nvim.lua`):
+
+```vim
+<Leader>Fs      " Forge status
+<Leader>Fb      " Kanban board (list)
+<Leader>Fp      " Project tags (current project)
+<Leader>Ft      " Calendar (read-only)
+<Leader>Fm      " Move current project to column
+<Leader>Fa      " Add tag to current project
+<Leader>Fr      " Remove tag from current project
+<Leader>Fi      " Open inbox.md
+<Leader>Ff      " Find Forge files (Telescope)
+<Leader>Fg      " Grep Forge files (Telescope)
+```
+
+Commands: `:ForgeStatus` (alias `:ForgeNext`), `:ForgeMove`, `:ForgeProjectTags`, `:ForgeProjectTagAdd`, `:ForgeProjectTagRemove`, `:ForgeCalendar`.
 
 ## LSP Operations
 
