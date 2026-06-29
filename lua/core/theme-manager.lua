@@ -82,15 +82,113 @@ function ThemeManager.detect_system_theme()
 	return system_theme_cache
 end
 
--- Apply red squiggly underline only for misspelled words
+-- Herdr PTY coloured-undercurl support: nil = unknown, boolean after XTGETTCAP probe.
+local herdr_coloured_undercurl_support = nil
+local herdr_coloured_undercurl_probe_started = false
+local HERDR_UNDERCURL_CAPS = { "Smulx", "Setulc" }
+
+---Convert a highlight colour id to a hex string.
+---@param colour integer|string|nil
+---@return string|nil
+local function hl_colour_to_hex(colour)
+	if type(colour) == "number" then
+		return string.format("#%06x", colour)
+	end
+	if type(colour) == "string" and colour ~= "" then
+		return colour
+	end
+	return nil
+end
+
+---Resolve a theme-appropriate red for spell-error underlines.
+---@return string
+local function get_spell_bad_colour()
+	for _, group in ipairs({ "SpellBad", "DiagnosticError", "Error" }) do
+		local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
+		if ok and hl then
+			local sp_hex = hl_colour_to_hex(hl.sp)
+			if sp_hex then
+				return sp_hex
+			end
+			local fg_hex = hl_colour_to_hex(hl.fg)
+			if fg_hex then
+				return fg_hex
+			end
+		end
+	end
+
+	if (vim.g.colors_name or "") == "flexoki" then
+		local ok, flexoki_palette = pcall(require, "flexoki.palette")
+		if ok and type(flexoki_palette.palette) == "function" then
+			local ok_palette, c = pcall(flexoki_palette.palette)
+			if ok_palette and type(c) == "table" then
+				if c["re-2"] then
+					return c["re-2"]
+				end
+				if c["re"] then
+					return c["re"]
+				end
+			end
+		end
+	end
+
+	return "#d14d41"
+end
+
+local function apply_spell_bad_highlight(use_plain_red_underline)
+	local spell_red = get_spell_bad_colour()
+	if use_plain_red_underline then
+		pcall(vim.api.nvim_set_hl, 0, "SpellBad", { underline = true, undercurl = false, fg = spell_red })
+	else
+		pcall(vim.api.nvim_set_hl, 0, "SpellBad", { undercurl = true, sp = spell_red })
+	end
+end
+
+local function probe_herdr_coloured_undercurl_support()
+	if herdr_coloured_undercurl_probe_started or vim.env.HERDR_ENV ~= "1" then
+		return
+	end
+	if not vim.tty or type(vim.tty.query) ~= "function" then
+		herdr_coloured_undercurl_support = false
+		return
+	end
+
+	herdr_coloured_undercurl_probe_started = true
+	local remaining = #HERDR_UNDERCURL_CAPS
+	local supported = { Smulx = false, Setulc = false }
+
+	vim.tty.query(HERDR_UNDERCURL_CAPS, function(cap, found)
+		if found then
+			supported[cap] = true
+		end
+		remaining = remaining - 1
+		if remaining > 0 then
+			return
+		end
+
+		-- Both curly underline (Smulx) and coloured underline (Setulc) are required.
+		herdr_coloured_undercurl_support = supported.Smulx and supported.Setulc
+		vim.schedule(function()
+			ThemeManager.apply_spell_undercurl()
+		end)
+	end)
+end
+
+-- Apply red underline for misspelled words (undercurl when the terminal supports it).
 function ThemeManager.apply_spell_undercurl()
-  -- Prefer undercurl when supported; fall back to solid underline (Warp)
-  local is_warp = (vim.env.TERM_PROGRAM == "WarpTerminal")
-  if is_warp then
-    pcall(vim.api.nvim_set_hl, 0, "SpellBad", { underline = true, undercurl = false, fg = "#ff4d4d" })
-  else
-    pcall(vim.api.nvim_set_hl, 0, "SpellBad", { undercurl = true, sp = "#ff4d4d" })
-  end
+	local use_plain_red_underline = vim.env.TERM_PROGRAM == "WarpTerminal"
+
+	if vim.env.HERDR_ENV == "1" then
+		if herdr_coloured_undercurl_support == nil then
+			probe_herdr_coloured_undercurl_support()
+			-- Workaround until XTGETTCAP probe completes (or while caps are still missing).
+			use_plain_red_underline = true
+		else
+			use_plain_red_underline = not herdr_coloured_undercurl_support
+		end
+	end
+
+	apply_spell_bad_highlight(use_plain_red_underline)
 end
 
 -- Apply formatting parity with Gruvbox (italics/neutral choices)
