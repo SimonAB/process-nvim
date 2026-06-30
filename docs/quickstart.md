@@ -248,29 +248,28 @@ Academic workflow servers:
 
 ### macOS: Configure Skim for SyncTeX
 
-1. Open Skim → Preferences → Sync
-2. Set **Preset** to: Custom
-3. Set **Command** to: `/Users/<username>/.config/nvim/scripts/skim_inverse_search.sh`
-   - Use absolute path, no tilde (~)
-4. Set **Arguments** to: `%line "%file"`
+Run the helper (writes Skim preferences from `which nvim`):
+
+```bash
+~/.config/nvim/scripts/configure-skim-synctex.sh
+```
+
+Or set manually in Skim → Preferences → Sync:
+
+1. **Preset**: Custom
+2. **Command**: `/opt/homebrew/bin/nvim` (full path from `which nvim`)
+3. **Arguments**: `--headless -c "VimtexInverseSearch %line '%file'"`
 
 In Skim:
-- Cmd+Shift+Click on PDF to jump to corresponding line in Neovim
+- Cmd+Shift+Click on PDF to jump to corresponding line in Neovim (Ghostty is raised automatically)
 
 ### Arch Linux: Configure Zathura for SyncTeX
 
 VimTeX automatically configures Zathura for inverse search. If needed, create or edit `~/.config/zathura/zathurarc`:
 
-**Simplest solution** (recommended):
 ```
 set synctex true
 set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""
-```
-
-**Alternative** (if using nvr):
-```
-set synctex true
-set synctex-editor-command "nvr --servername /tmp/nvim_server --remote-silent +%{line} '%{input}'"
 ```
 
 **Note**: VimTeX may handle this automatically. Test first without manual configuration.
@@ -384,14 +383,11 @@ nvim -c "lua print(pcall(require, 'toggleterm'))"
 #### macOS (Skim)
 
 ```bash
-# Check script exists
-ls ~/.config/nvim/scripts/skim_inverse_search.sh
+# Re-apply Skim preferences from this config
+~/.config/nvim/scripts/configure-skim-synctex.sh
 
-# Test script manually
-~/.config/nvim/scripts/skim_inverse_search.sh 10 "/absolute/path/to/test.tex"
-
-# Check debug log
-tail -f /tmp/inverse_search.log
+# Test inverse search command manually
+nvim --headless -c "VimtexInverseSearch 10 '/absolute/path/to/test.tex'"
 ```
 
 #### Arch Linux (Zathura)
@@ -402,9 +398,6 @@ cat ~/.config/zathura/zathurarc
 
 # Test inverse search command manually (if configured)
 nvim --headless -c "VimtexInverseSearch 10 '/absolute/path/to/test.tex'"
-
-# Or with nvr (if using nvr)
-nvr --servername /tmp/nvim_server --remote-silent +10 "/absolute/path/to/test.tex"
 ```
 
 ## Feature Discovery

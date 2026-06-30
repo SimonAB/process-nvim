@@ -7,9 +7,11 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 #### No response on inverse search
 
 **macOS (Skim)**:
-- **Skim Sync settings**: Preferences → Sync → Command should point to `skim_inverse_search.sh`, Arguments: `%line "%file"`
-- **Neovim path**: Verify `which nvim` points to your Neovim 0.12 install
+- **Skim Sync settings**: Preferences → Sync → Preset **Custom**; **Command** = absolute path to `nvim` (e.g. `/opt/homebrew/bin/nvim`); **Arguments** = `--headless -c "VimtexInverseSearch %line '%file'"`
+- **One-shot setup**: `~/.config/nvim/scripts/configure-skim-synctex.sh` (writes Skim preferences from `which nvim`)
+- **Neovim path**: Skim does not always search `$PATH`; use the full path from `which nvim`
 - **Synctex**: Ensure your build includes `-synctex=1` (configured via VimTeX latexmk options)
+- **Automation**: macOS may prompt for permission the first time Skim runs Neovim
 
 **Arch Linux (Zathura)**:
 - **Zathura configuration**: If needed, add to `~/.config/zathura/zathurarc`: `set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""`
@@ -20,21 +22,24 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 #### Path Configuration Problems
 
 **macOS**:
-- **Verify Script Path**: In Skim preferences, use the full canonical absolute path to the script; do not use tilde (~) and do not use symlinks. Use exactly: `/Users/<username>/.config/nvim/scripts/skim_inverse_search.sh`
-- **Test Script Manually**: Run `/Users/<username>/.config/nvim/scripts/skim_inverse_search.sh 10 "/absolute/path/to/test.tex"` to validate the script directly
-- **Check nvr Installation**: Verify nvr is installed with `which nvr` (typically `/opt/homebrew/bin/nvr` on Apple Silicon or `/usr/local/bin/nvr` on Intel)
+- **Verify Skim settings**: Command must be the full `nvim` binary; Arguments must be exactly `--headless -c "VimtexInverseSearch %line '%file'"`
+- **Test manually**: `nvim --headless -c "VimtexInverseSearch 10 '/absolute/path/to/test.tex'"`
+- **Multiple Neovims**: VimTeX registers each instance and routes inverse search to the matching project
 
 **Arch Linux**:
-- **Simplest solution**: Use VimTeX's built-in function directly in `~/.config/zathura/zathurarc`: `set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""`
-- **Alternative with nvr**: If using nvr: `set synctex-editor-command "nvr --servername /tmp/nvim_server --remote-silent +%{line} '%{input}'"`
+- Use VimTeX's built-in function in `~/.config/zathura/zathurarc`: `set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""`
 - **Note**: VimTeX may configure this automatically. Test first without manual configuration.
-- **Check nvr Installation** (if using nvr): Verify nvr is installed with `which nvr` (typically `/usr/bin/nvr` on Arch Linux)
 
 #### Files not found with relative paths in LaTeX projects
 - VimTeX's built-in `VimtexInverseSearch` handles path resolution automatically
 - For custom project layouts, ensure your LaTeX project structure is standard
-- If using the optional script, check debug log: `tail -f /tmp/inverse_search.log`
 - Verify your project structure matches supported patterns
+
+#### After changing SyncTeX configuration
+- **Restart Neovim** in every tmux/Herdr pane so each instance registers a fresh RPC socket with VimTeX
+- Open a `.tex` buffer once, then check `~/.cache/vimtex/nvim_servernames.log` lists a live socket (not a stale path)
+- **Forward search** (`\lv`) is in-process and usually works without RPC; **inverse search** (Skim click) depends on the registry above
+- Remove a leftover shared socket from older configs if present: `rm -f /tmp/nvim_server`
 
 ### Plugin and Configuration Issues
 
@@ -134,7 +139,6 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 ### Log Files
 
 #### Important Log Locations
-- **Inverse Search**: `/tmp/inverse_search.log`
 - **Neovim**: `~/.local/share/nvim/log/`
 - **Mason**: `~/.local/share/nvim/mason/`
 - **LSP**: Check `:lua print(vim.lsp.get_log_path())`

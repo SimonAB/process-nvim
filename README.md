@@ -224,9 +224,8 @@ Install language servers via Mason:
 
 **macOS (Skim)**:
 
-- Verify Skim preferences: Sync → Custom command
-- Check script path: Use absolute path, no tilde (~)
-- Debug log: `tail -f /tmp/inverse_search.log`
+- Run `~/.config/nvim/scripts/configure-skim-synctex.sh` or set Skim → Sync → Custom with `nvim --headless -c "VimtexInverseSearch %line '%file'"`
+- Forward search: `\lv` in a `.tex` buffer (Skim is raised and scrolled to the cursor)
 
 **Arch Linux (Zathura)**:
 

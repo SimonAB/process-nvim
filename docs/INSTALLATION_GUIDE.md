@@ -226,14 +226,17 @@ latexmk --version
 
 ##### macOS: Configure Skim
 
-1. Open Skim
-2. Navigate to **Preferences** → **Sync** → **PDF-TeX Sync**
-3. Configure sync settings:
-   - **Preset**: Custom
-   - **Command**: `/Users/<username>/.config/nvim/scripts/skim_inverse_search.sh`
-     - **Important**: Use absolute path, no tilde (~) or symlinks
-     - Replace `<username>` with your actual username
-   - **Arguments**: `%line "%file"`
+Run:
+
+```bash
+~/.config/nvim/scripts/configure-skim-synctex.sh
+```
+
+Or configure manually in Skim → **Preferences** → **Sync** → **PDF-TeX Sync**:
+
+- **Preset**: Custom
+- **Command**: `/opt/homebrew/bin/nvim` (use `which nvim`; full path required)
+- **Arguments**: `--headless -c "VimtexInverseSearch %line '%file'"`
 
 In Skim:
 - Cmd+Shift+Click for inverse search (PDF → Neovim)
@@ -242,18 +245,11 @@ In Skim:
 
 VimTeX automatically configures Zathura for inverse search when using `vim.g.vimtex_view_method = "zathura"`. However, you may need to configure Zathura manually if automatic setup doesn't work.
 
-**Simplest solution** (recommended): Use VimTeX's built-in function directly in `~/.config/zathura/zathurarc`:
+Use VimTeX's built-in function directly in `~/.config/zathura/zathurarc`:
 
 ```
 set synctex true
 set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""
-```
-
-**Alternative** (if using nvr/neovim-remote): If you have `nvr` installed and want to use the running Neovim instance:
-
-```
-set synctex true
-set synctex-editor-command "nvr --servername /tmp/nvim_server --remote-silent +%{line} '%{input}'"
 ```
 
 **Note**: VimTeX automatically starts Zathura with the `-x` argument for inverse search, so manual configuration may not be necessary. Test first without configuring `synctex-editor-command`.
@@ -712,15 +708,11 @@ cargo build --release
 
 **Solution**:
 ```bash
-# Verify script path in Skim preferences
-# Must be absolute path:
-/Users/<username>/.config/nvim/scripts/skim_inverse_search.sh
+# Re-apply Skim SyncTeX settings
+~/.config/nvim/scripts/configure-skim-synctex.sh
 
-# Test script manually
-~/.config/nvim/scripts/skim_inverse_search.sh 10 "/absolute/path/to/test.tex"
-
-# Check debug log
-tail -f /tmp/inverse_search.log
+# Test inverse search manually
+nvim --headless -c "VimtexInverseSearch 10 '/absolute/path/to/test.tex'"
 ```
 
 ### Terminal Emulator Issues

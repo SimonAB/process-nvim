@@ -93,16 +93,11 @@ vim.cmd("filetype plugin indent on")
 -- VimTeX core settings live in lua/plugins/vimtex.lua.
 -- Keep this file focused on editor-global behaviour only.
 
--- Start a Neovim RPC server for robust inverse search (used by Skim)
+-- Per-instance RPC server for VimTeX inverse search (Skim/Zathura → VimtexInverseSearch).
 do
-  local server_address = "/tmp/nvim_server"
-  vim.env.NVIM_LISTEN_ADDRESS = server_address
-  -- Try to start; if socket exists and is stale, delete and retry
-  local ok = pcall(vim.fn.serverstart, server_address)
-  if not ok and vim.fn.filereadable(server_address) == 1 then
-    pcall(vim.fn.delete, server_address)
-    pcall(vim.fn.serverstart, server_address)
-  end
+	if vim.v.servername == "" then
+		pcall(vim.fn.serverstart)
+	end
 end
 
 -- Ensure VimTeX uses the correct local leader (must match init.lua setting)

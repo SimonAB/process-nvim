@@ -93,8 +93,8 @@ local is_linux = vim.fn.has("unix") == 1 and vim.fn.has("macunix") == 0
 if is_macos then
 	-- macOS: Use Skim for PDF viewing
 	vim.g.vimtex_view_method = "skim"
-	vim.g.vimtex_view_general_viewer = "skim"
-	vim.g.vimtex_view_general_options = "--unique file:@pdf\\#src:@line@tex"
+	vim.g.vimtex_view_skim_activate = 1
+	vim.g.vimtex_view_skim_reading_bar = 1
 elseif is_linux then
 	-- Linux: Use Zathura for PDF viewing
 	vim.g.vimtex_view_method = "zathura"
@@ -109,7 +109,8 @@ end
 
 vim.g.vimtex_compiler_method = "latexmk" -- Use latexmk for compilation
 vim.g.vimtex_compiler_latexmk = {
-	build_dir = "build",
+	out_dir = "build",
+	aux_dir = "build",
 	options = {
 		"-pdf",
 		"-pdflatex=lualatex",
