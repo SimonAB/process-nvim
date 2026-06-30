@@ -247,3 +247,25 @@ vim.api.nvim_create_autocmd("User", {
     vim.defer_fn(add_tex_style_syntax, 10)
   end,
 })
+
+-- Raise Ghostty after Skim inverse search so the cursor jump is visible behind Skim.
+if is_macos then
+	local vimtex_inverse_focus_group = vim.api.nvim_create_augroup("VimtexInverseSearchFocus", { clear = true })
+
+	---Bring Ghostty to the foreground after a successful VimTeX inverse search.
+	local function focus_terminal_after_inverse_search()
+		vim.schedule(function()
+			local ok = pcall(vim.system, { "osascript", "-e", 'tell application "Ghostty" to activate' }, { detach = true })
+			if not ok then
+				vim.notify("Failed to focus Ghostty after inverse search", vim.log.levels.DEBUG)
+			end
+		end)
+	end
+
+	vim.api.nvim_create_autocmd("User", {
+		group = vimtex_inverse_focus_group,
+		pattern = "VimtexEventViewReverse",
+		desc = "Raise Ghostty after Skim inverse search",
+		callback = focus_terminal_after_inverse_search,
+	})
+end
