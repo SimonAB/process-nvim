@@ -7,14 +7,21 @@
 # the wrapper can fail early (e.g. `dirname: command not found` under an empty
 # PATH) or invoke the wrong Node binary.
 #
+# Sync policy (see ~/Documents/etc/README.md):
+#   - Syncable: this script and CodeCompanion config via Documents/etc → nvim
+#   - Not syncable: ~/.local/bin shims, ~/.local/share/cursor-agent packages,
+#     ~/.hermes installs, or agent auth/state under ~/.cursor
+#
 # Usage:
-#   ~/.config/nvim/scripts/repair-cursor-agent.sh           # diagnose + reinstall
+#   ~/.config/nvim/scripts/repair-cursor-agent.sh           # diagnose + repair
 #   ~/.config/nvim/scripts/repair-cursor-agent.sh --check   # diagnose only
 
 set -euo pipefail
 
 readonly LOCAL_BIN="${HOME}/.local/bin"
 readonly VERSIONS_DIR="${HOME}/.local/share/cursor-agent/versions"
+readonly ETC_ROOT="${HOME}/Documents/etc"
+readonly ETC_README="${ETC_ROOT}/README.md"
 CHECK_ONLY=0
 
 if [[ "${1:-}" == "--check" ]]; then
@@ -75,8 +82,35 @@ newest_versioned_agent() {
 	return 1
 }
 
+# Summarise Documents/etc sync guidance without inventing an allowlist.
+note_etc_sync_policy() {
+	print_info "Dotfiles sync root: ${ETC_ROOT}"
+	if [[ -f "${ETC_README}" ]]; then
+		print_ok "Found ${ETC_README} — only sync paths listed there"
+	else
+		print_warn "No ${ETC_README} yet; do not copy ~/.local or ~/.hermes into etc"
+	fi
+
+	# Common layout from this repo's scripts: config/nvim inside Documents/etc.
+	if [[ -e "${ETC_ROOT}/config/nvim" ]]; then
+		print_ok "Synced nvim config path present: ${ETC_ROOT}/config/nvim"
+	fi
+
+	print_info "Keep machine-local (do not sync):"
+	print_info "  ${LOCAL_BIN}/{agent,cursor-agent,node}"
+	print_info "  ${VERSIONS_DIR}/"
+	print_info "  ${HOME}/.hermes/"
+	print_info "  ${HOME}/.cursor/projects/ and auth/state"
+	print_info "Syncable via etc (when listed in the README):"
+	print_info "  nvim config (includes this repair script + CodeCompanion setup)"
+	print_info "  shell PATH snippets that add ~/.local/bin"
+}
+
 echo ""
 echo "Cursor Agent repair"
+echo ""
+
+note_etc_sync_policy
 echo ""
 
 print_info "PATH includes ~/.local/bin: $([[ ":${PATH}:" == *":${LOCAL_BIN}:"* ]] && echo yes || echo no)"
@@ -143,5 +177,6 @@ else
 fi
 
 echo ""
-print_ok "Repair complete. In Neovim, reopen CodeCompanion chat (:CodeCompanionChat)."
+print_ok "Repair complete. Machine-local shims only — sync remains via ${ETC_ROOT}."
+print_ok "In Neovim, reopen CodeCompanion chat (:CodeCompanionChat)."
 echo ""
