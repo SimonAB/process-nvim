@@ -39,7 +39,7 @@
 
 ### AI (CodeCompanion)
 - **Keymaps** (`<leader>A*`): chat, toggle, debug, and Ollama adapter shortcuts; which-key group “AI”.
-- **Cursor Agent ACP**: Forward Neovim’s environment into the ACP `vim.system` spawn (avoids empty `PATH` → `dirname: command not found`), prefer the versioned binary under `~/.local/share/cursor-agent`, and add `scripts/repair-cursor-agent.sh` to restore `~/.local/bin` shims after Hermes conflicts.
+- **Cursor Agent ACP**: Forward Neovim’s environment into the ACP `vim.system` spawn (avoids empty `PATH` → `dirname: command not found`), prefer the versioned agent binary under `~/.local/share/cursor-agent`, add `scripts/repair-cursor-agent.sh` for machine-local shim repair, document `~/Documents/etc` sync boundaries, and add optional `scripts/snippets/path-local-bin.zsh`.
 
 ### Documentation
 - **Forge / Obsidian / Julia / AI**: **docs/reference/keymaps.md**, **AGENTS.md**, **docs/quickstart.md**, **docs/index.md** aligned with current maps.
