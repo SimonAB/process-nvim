@@ -106,6 +106,19 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 - Check if the appropriate language server is installed
 - Verify terminal integration is properly configured
 
+### CodeCompanion / Cursor Agent Issues
+
+#### `~/.local/bin/cursor-agent: line 8: dirname: command not found`
+- **Cause**: CodeCompanion starts ACP agents via `vim.system` with a replaced environment. Without an inherited `PATH`, the Cursor Agent wrapper cannot find `dirname` / `realpath`. Separately, Hermes installs into `~/.local/bin` and may leave `agent` / `cursor-agent` as broken shims instead of symlinks into `~/.local/share/cursor-agent/versions/`.
+- **Config fix** (already in this repo): `lua/plugins/codecompanion-nvim.lua` forwards Neovim's environment, strengthens `PATH`, and prefers the versioned agent binary.
+- **Repair shims**:
+  ```bash
+  ~/.config/nvim/scripts/repair-cursor-agent.sh --check
+  ~/.config/nvim/scripts/repair-cursor-agent.sh
+  ```
+- **Auth**: after a reinstall, run `agent login` in a terminal, then reopen `:CodeCompanionChat`.
+- **Note**: Hermes may keep its own `~/.local/bin/node` symlink; that is expected. The versioned Cursor Agent package uses its bundled Node next to the real `cursor-agent` script.
+
 ### Theme and Appearance Issues
 
 #### Theme not cycling
