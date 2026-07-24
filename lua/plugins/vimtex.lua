@@ -93,7 +93,8 @@ local is_linux = vim.fn.has("unix") == 1 and vim.fn.has("macunix") == 0
 if is_macos then
 	-- macOS: Use Skim for PDF viewing
 	vim.g.vimtex_view_method = "skim"
-	vim.g.vimtex_view_skim_activate = 1
+	-- Keep the terminal/Neovim window focused after forward search (\lv).
+	vim.g.vimtex_view_skim_activate = 0
 	vim.g.vimtex_view_skim_reading_bar = 1
 elseif is_linux then
 	-- Linux: Use Zathura for PDF viewing
@@ -108,16 +109,18 @@ else
 end
 
 vim.g.vimtex_compiler_method = "latexmk" -- Use latexmk for compilation
+-- Compile beside the .tex (matches most manuscripts and texlab auxDirectory = ".").
+-- latexmk runs biber/bibtex automatically when the bibliography backend requires it.
 vim.g.vimtex_compiler_latexmk = {
-	out_dir = "build",
-	aux_dir = "build",
 	options = {
-		"-pdf",
-		"-pdflatex=lualatex",
+		"-lualatex",
 		"-interaction=nonstopmode",
 		"-synctex=1",
 		"-file-line-error",
 	},
+}
+vim.g.vimtex_compiler_latexmk_engines = {
+	_ = "-lualatex",
 }
 
 -- Disable spell checking in citation arguments
@@ -184,9 +187,6 @@ local function apply_citation_nospell_rules()
 
   -- Force syntax highlighting refresh with higher priority
   pcall(vim.cmd, 'syntax sync fromstart')
-  pcall(vim.cmd, 'redraw!')
-
-  print("Citation spell exclusion rules applied")
 end
 
 -- Complete spell exclusion using @NoSpell syntax groups

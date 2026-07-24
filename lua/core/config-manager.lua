@@ -142,7 +142,7 @@ ConfigManager.lsp.servers = {
 				build = {
 					executable = "latexmk",
 					args = {
-						"-pdf", "-pdflatex=lualatex", "-interaction=nonstopmode",
+						"-lualatex", "-interaction=nonstopmode",
 						"-synctex=1", "-file-line-error", "%f"
 					},
 					onSave = false,

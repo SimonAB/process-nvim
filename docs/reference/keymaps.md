@@ -106,8 +106,8 @@ K               " Show hover documentation
 ### LaTeX/VimTeX
 VimTeX provides comprehensive default keymaps (see `:help vimtex-default-mappings`):
 ```vim
-\LocalLeader\ll  " Compile LaTeX (standard)
-\LocalLeader\lb  " Compile with LuaLaTeX+Biber (latexmk → biber → latexmk × 2)
+\LocalLeader\ll  " Compile LaTeX (latexmk + lualatex; runs biber when needed)
+\LocalLeader\lb  " Compile (alias of ll)
 \LocalLeader\lv  " View PDF (forward search)
 \LocalLeader\lk  " Stop compilation
 \LocalLeader\lK  " Stop all compilations
@@ -129,8 +129,7 @@ VimTeX provides comprehensive default keymaps (see `:help vimtex-default-mapping
 " And many more - see :help vimtex-default-mappings
 ```
 
-**Note**: The custom LuaLaTeX+Biber compilation (`\lb`) opens a terminal window in normal mode, 
-allowing you to scroll through output, yank error messages, and dismiss with `q` when done.
+**Note**: Compilation uses VimTeX’s latexmk backend with LuaLaTeX. latexmk runs biber/bibtex when the bibliography backend requires it, so `\lb` is kept only as an alias of `\ll`. Auxiliary files are written beside the `.tex` (same as texlab `auxDirectory = "."`).
 
 ### Typst
 Buffer-local on `typ` / `typst` files (`<localleader>` is typically `\`):

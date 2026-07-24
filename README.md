@@ -103,7 +103,7 @@ Plugins install automatically on first launch (vim.pack). Mason prompts for lang
 | ----------------------------------- | -------------------------------------------- |
 | `<localleader>lv`                   | LaTeX forward search (VimTeX)                |
 | `<localleader>ll`                   | Compile LaTeX (VimTeX)                       |
-| `<localleader>lb`                   | LuaLaTeX + Biber (custom terminal workflow)  |
+| `<localleader>lb`                   | Compile (alias of `<localleader>ll`; latexmk runs biber when needed) |
 | `<localleader>tp`–`<localleader>tw` | Typst preview / sync / `typst c` / `typst w` |
 | `<leader>Kp`                        | Markdown preview                             |
 | `<leader>Qp`                        | Quarto preview                               |
@@ -225,7 +225,7 @@ Install language servers via Mason:
 **macOS (Skim)**:
 
 - Run `~/.config/nvim/scripts/configure-skim-synctex.sh` or set Skim → Sync → Custom with `nvim --headless -c "VimtexInverseSearch %line '%file'"`
-- Forward search: `\lv` in a `.tex` buffer (Skim is raised and scrolled to the cursor)
+- Forward search: `\lv` in a `.tex` buffer (Skim scrolls to the cursor; Neovim keeps focus)
 
 **Arch Linux (Zathura)**:
 

@@ -224,8 +224,7 @@ vim.defer_fn(function()
 							build = {
 								executable = "latexmk",
 								args = {
-									"-pdf",
-									"-pdflatex=lualatex",
+									"-lualatex",
 									"-interaction=nonstopmode",
 									"-synctex=1",
 									"-file-line-error",
