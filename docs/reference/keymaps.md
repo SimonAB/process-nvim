@@ -156,7 +156,7 @@ Project root is resolved by `core.typst-project`: `TYPST_ROOT` if set, else the 
 <Leader>QRh     " Render to HTML
 <Leader>QRp     " Render to PDF
 <Leader>QRw     " Render to Word
-<Leader>QRa     " Render all (project)
+<Leader>QRa     " Render all formats (or project if _quarto.yml)
 ```
 
 ### Markdown Table Operations
@@ -179,22 +179,6 @@ Table editing operations for markdown and quarto files (table-nvim):
 ```
 
 **Note**: Table operations live under `<Leader>Kt…`. Markdown preview is `<Leader>Kp` (start), `<Leader>Ks` (stop), `<Leader>Kv` (toggle).
-
-### Molten (Jupyter)
-```vim
-<Leader>QMi     " Show image popup
-<Leader>QMl     " Evaluate line
-<Leader>QMe     " Evaluate operator
-<Leader>QMn     " Initialise kernel
-<Leader>QMk     " Stop kernel
-<Leader>QMr     " Restart kernel
-<Leader>QMv     " Evaluate visual selection
-<Leader>QMf     " Re-evaluate cell
-<Leader>QMh     " Hide output
-<Leader>QMs     " Show output
-<Leader>QMd     " Delete cell
-<Leader>QMb     " Open in browser
-```
 
 ## Academic Workflow
 

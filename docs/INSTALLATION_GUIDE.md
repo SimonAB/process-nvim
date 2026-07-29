@@ -389,7 +389,7 @@ using Pkg
 Pkg.add("LanguageServer")
 Pkg.add("SymbolServer")
 
-# For Quarto/Jupyter integration
+# Optional: Quarto Jupyter engine kernels
 Pkg.add("IJulia")
 ```
 

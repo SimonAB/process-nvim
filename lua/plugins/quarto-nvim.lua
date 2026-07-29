@@ -1,5 +1,6 @@
 -- Configuration for quarto-nvim
--- Quarto document authoring support with multi-language LSP
+-- Quarto document authoring support with multi-language LSP via otter.nvim.
+-- Interactive chunk execution uses the Julia REPL send mappings (<C-c>), not Molten.
 
 local ok, quarto = pcall(require, "quarto")
 if ok then
@@ -18,11 +19,12 @@ if ok then
 				enabled = true,
 			},
 		},
+		-- Prefer toggleterm Julia REPL (<C-c> / <C-i> / <C-s>) over quarto-nvim runners.
 		codeRunner = {
-			enabled = true,
-			default_method = "otter", -- Use otter for code execution
-			ft_runners = {}, -- filetype to runner, ie. `{ python = "otter" }`
-			never_run = { "yaml" }, -- filetypes which are never sent to a code runner
+			enabled = false,
+			default_method = nil,
+			ft_runners = {},
+			never_run = { "yaml" },
 		},
 	})
 end

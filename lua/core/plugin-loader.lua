@@ -163,7 +163,7 @@ local LOAD_PHASES = {
 		"obsidian-nvim",      -- Obsidian vault support
 		"autolist-nvim",      -- List continuation
 		"table-nvim",         -- Markdown tables
-		"otter-nvim",         -- Code execution (Quarto)
+		"otter-nvim",         -- Embedded LSP for Quarto chunks
 		"quarto-nvim",        -- Quarto support
 		"julia-vim",          -- Julia syntax/indent
 		"forge-nvim",         -- Forge task & project manager

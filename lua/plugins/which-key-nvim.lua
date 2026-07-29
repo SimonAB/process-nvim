@@ -153,7 +153,6 @@ if ok then
 		-- Quarto operations
 		{ "<leader>Q", group = "Quarto" },
 		{ "<leader>QR", group = "Render" },
-		{ "<leader>QM", group = "Molten" },
 		-- Split operations
 		{ "<leader>|", group = "Split" },
 		-- Terminal operations

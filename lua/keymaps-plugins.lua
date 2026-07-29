@@ -183,37 +183,114 @@ local function quarto_operation(operation_name)
 	end
 end
 
----Build jobstart options for non-interactive Quarto renders.
----@param format_name string
----@return table
-local function build_quarto_job_opts(format_name)
-	return {
-		on_exit = function(_, exit_code)
-			if exit_code == 0 then
-				vim.notify("✓ " .. format_name .. " render complete", vim.log.levels.INFO)
-			else
-				vim.notify("✗ " .. format_name .. " render failed (exit " .. exit_code .. ")", vim.log.levels.ERROR)
-			end
-		end,
-		on_stderr = function(_, data)
-			if not data or #data == 0 then
-				return
-			end
-			for _, line in ipairs(data) do
-				if line ~= "" then
-					print(line)
-				end
-			end
-		end,
+---Find a Quarto project root by walking up for `_quarto.yml` / `_quarto.yaml`.
+---@param start_dir string
+---@return string|nil
+local function find_quarto_project_root(start_dir)
+	local dir = start_dir
+	while dir and dir ~= "" do
+		if vim.fn.filereadable(dir .. "/_quarto.yml") == 1
+			or vim.fn.filereadable(dir .. "/_quarto.yaml") == 1
+		then
+			return dir
+		end
+		local parent = vim.fn.fnamemodify(dir, ":h")
+		if parent == dir then
+			break
+		end
+		dir = parent
+	end
+	return nil
+end
+
+---Append Quarto job output to a progress popup without hit-enter prompts.
+---@param popup table|nil
+---@param data string[]|nil
+local function append_quarto_output(popup, data)
+	if not popup or not data then
+		return
+	end
+	for _, line in ipairs(data) do
+		if line ~= "" then
+			-- Strip ANSI colour codes from Quarto/pandoc output.
+			local clean = line:gsub("\27%[[0-9;]*m", "")
+			require("core.progress-popup").append_line(popup, clean)
+		end
+	end
+end
+
+---Start a Quarto render job with a progress popup (no Press-ENTER spam).
+---@param cmd string[]
+---@param opts table
+---  title: string
+---  cwd?: string
+---  success_msg?: string
+---  failure_msg?: string
+local function start_quarto_render_job(cmd, opts)
+	local ProgressPopup = require("core.progress-popup")
+	local popup = ProgressPopup.create(opts.title or "Quarto render", {
+		width = 88,
+		height = 22,
+	})
+	ProgressPopup.set_lines(popup, {
+		"",
+		"  " .. table.concat(cmd, " "),
+		"",
+		"  Working…",
+		"",
+	})
+
+	local job_opts = {
+		cwd = opts.cwd,
 		env = {
 			TERM = "dumb",
+			NO_COLOR = "1",
 			NONINTERACTIVE = "1",
+			CI = "1",
 			PAGER = "cat",
 			MANPAGER = "cat",
-			LESS = "-R",
-			MORE = "-R",
+			GIT_PAGER = "cat",
+			LESS = "FRX",
+			MORE = "F",
 		},
+		on_stdout = function(_, data)
+			vim.schedule(function()
+				append_quarto_output(popup, data)
+			end)
+		end,
+		on_stderr = function(_, data)
+			vim.schedule(function()
+				append_quarto_output(popup, data)
+			end)
+		end,
+		on_exit = function(_, exit_code)
+			vim.schedule(function()
+				if exit_code == 0 then
+					ProgressPopup.append_line(popup, "")
+					ProgressPopup.append_line(popup, "  ✓ " .. (opts.success_msg or "Render complete"))
+					ProgressPopup.append_line(popup, "  Press q or <Esc> to close")
+					vim.notify(opts.success_msg or "Quarto render complete", vim.log.levels.INFO)
+				else
+					ProgressPopup.append_line(popup, "")
+					ProgressPopup.append_line(
+						popup,
+						"  ✗ " .. (opts.failure_msg or ("Render failed (exit " .. exit_code .. ")"))
+					)
+					ProgressPopup.append_line(popup, "  Press q or <Esc> to close")
+					vim.notify(
+						opts.failure_msg or ("Quarto render failed (exit " .. exit_code .. ")"),
+						vim.log.levels.ERROR
+					)
+				end
+			end)
+		end,
 	}
+
+	local job_id = vim.fn.jobstart(cmd, job_opts)
+	if job_id <= 0 then
+		ProgressPopup.append_line(popup, "  ✗ Failed to start Quarto (is it on PATH?)")
+		vim.notify("Failed to start Quarto render job", vim.log.levels.ERROR)
+	end
 end
 
 ---Render the current Quarto document to a specific format.
@@ -229,19 +306,59 @@ local function quarto_render_to_format(format, format_name)
 		end
 
 		local cmd = { "quarto", "render", file, "--to", format }
+		-- Keep LaTeX from pausing on errors (avoids interactive prompts).
 		if format == "pdf" then
 			table.insert(cmd, "--pdf-engine-opt=-interaction=nonstopmode")
+			table.insert(cmd, "--pdf-engine-opt=-halt-on-error")
 		end
 
-		vim.notify("Rendering to " .. format_name .. "...", vim.log.levels.INFO)
-		vim.fn.jobstart(cmd, build_quarto_job_opts(format_name))
+		start_quarto_render_job(cmd, {
+			title = "Quarto → " .. format_name,
+			cwd = vim.fn.fnamemodify(file, ":h"),
+			success_msg = format_name .. " render complete",
+			failure_msg = format_name .. " render failed",
+		})
 	end
 end
 
----Render all Quarto documents in the current project.
+---Render all formats for the current file, or the whole Quarto project if present.
 local function quarto_render_all()
-	vim.notify("Rendering all files in project...", vim.log.levels.INFO)
-	vim.fn.jobstart({ "quarto", "render" }, build_quarto_job_opts("Project"))
+	local file = vim.fn.expand("%:p")
+	local start_dir = file ~= "" and vim.fn.fnamemodify(file, ":h") or vim.fn.getcwd()
+	local project_root = find_quarto_project_root(start_dir)
+
+	if project_root then
+		start_quarto_render_job({ "quarto", "render" }, {
+			title = "Quarto → Project",
+			cwd = project_root,
+			success_msg = "Project render complete",
+			failure_msg = "Project render failed",
+		})
+		return
+	end
+
+	if file == "" or vim.fn.fnamemodify(file, ":e") ~= "qmd" then
+		vim.notify(
+			"No Quarto project (_quarto.yml) and no .qmd buffer to render",
+			vim.log.levels.WARN
+		)
+		return
+	end
+
+	-- No project: render every format declared in the document YAML.
+	local cmd = {
+		"quarto",
+		"render",
+		file,
+		"--pdf-engine-opt=-interaction=nonstopmode",
+		"--pdf-engine-opt=-halt-on-error",
+	}
+	start_quarto_render_job(cmd, {
+		title = "Quarto → All formats",
+		cwd = vim.fn.fnamemodify(file, ":h"),
+		success_msg = "All-format render complete",
+		failure_msg = "All-format render failed",
+	})
 end
 
 ---Toggle a vertical terminal: hide if visible, otherwise show/create.
@@ -1129,29 +1246,7 @@ map("n", "<leader>Qc", quarto_operation("quartoClosePreview"), { desc = "Close Q
 map("n", "<leader>QRh", quarto_render_to_format("html", "HTML"), { desc = "Render to HTML" })
 map("n", "<leader>QRp", quarto_render_to_format("pdf", "PDF"), { desc = "Render to PDF" })
 map("n", "<leader>QRw", quarto_render_to_format("docx", "Word"), { desc = "Render to Word" })
-map("n", "<leader>QRa", quarto_render_all, { desc = "Render all" })
-
--- Molten
-local molten_commands = {
-	["<leader>QMi"] = { cmd = "MoltenImagePopup", desc = "Show image popup" },
-	["<leader>QMl"] = { cmd = "MoltenEvaluateLine", desc = "Evaluate line" },
-	["<leader>QMe"] = { cmd = "MoltenEvaluateOperator", desc = "Evaluate operator" },
-	["<leader>QMn"] = { cmd = "MoltenInit", desc = "Initialise kernel" },
-	["<leader>QMk"] = { cmd = "MoltenDeinit", desc = "Stop kernel" },
-	["<leader>QMr"] = { cmd = "MoltenRestart", desc = "Restart kernel" },
-	["<leader>QMo"] = { cmd = "MoltenEvaluateOperator", desc = "Evaluate operator" },
-	["<leader>QM<CR>"] = { cmd = "MoltenEvaluateLine", desc = "Evaluate line" },
-	["<leader>QMv"] = { cmd = "MoltenEvaluateVisual", desc = "Evaluate visual selection" },
-	["<leader>QMf"] = { cmd = "MoltenReevaluateCell", desc = "Re-evaluate cell" },
-	["<leader>QMh"] = { cmd = "MoltenHideOutput", desc = "Hide output" },
-	["<leader>QMs"] = { cmd = "MoltenShowOutput", desc = "Show output" },
-	["<leader>QMd"] = { cmd = "MoltenDelete", desc = "Delete cell" },
-	["<leader>QMb"] = { cmd = "MoltenOpenInBrowser", desc = "Open in browser" },
-}
-
-for key, data in pairs(molten_commands) do
-	map("n", key, safe_cmd(data.cmd), { desc = data.desc })
-end
+map("n", "<leader>QRa", quarto_render_all, { desc = "Render all formats / project" })
 
 -- Julia
 map("n", "<leader>Jrh", function()
