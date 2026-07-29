@@ -137,21 +137,28 @@ end
 -- Note: Julia LSP is now started via autocommand below
 -- The autocommand handles actual startup with proper project path detection
 
--- Create user command to install LanguageServer.jl in the @nvim-lspconfig environment
-vim.api.nvim_create_user_command('JuliaLspInstall', function()
-  vim.notify("Installing LanguageServer.jl in @nvim-lspconfig environment...", vim.log.levels.INFO)
-  local project_env = "@nvim-lspconfig"
+local JULIA_LSP_PROJECT = "@nvim-lspconfig"
+
+---Run a Julia command for LanguageServer.jl maintenance.
+---@param julia_code string Julia code to execute
+---@param notify_start string Message shown when the job starts
+---@param notify_success string Message shown on success
+---@param notify_failure string Message shown on failure
+local function run_julia_lsp_job(julia_code, notify_start, notify_success, notify_failure)
+  vim.notify(notify_start, vim.log.levels.INFO)
   vim.fn.jobstart({
-    'julia',
-    '--project=' .. project_env,
-    '-e',
-    'using Pkg; Pkg.add("LanguageServer")'
+    "julia",
+    "--project=" .. JULIA_LSP_PROJECT,
+    "--startup-file=no",
+    "--history-file=no",
+    "-e",
+    julia_code,
   }, {
     on_exit = function(_, exit_code)
       if exit_code == 0 then
-        vim.notify("LanguageServer.jl installed successfully! Restart Neovim or reopen Julia files to use it.", vim.log.levels.INFO)
+        vim.notify(notify_success, vim.log.levels.INFO)
       else
-        vim.notify("Failed to install LanguageServer.jl. You may need to run manually: julia --project=@nvim-lspconfig -e 'using Pkg; Pkg.add(\"LanguageServer\")'", vim.log.levels.ERROR)
+        vim.notify(notify_failure, vim.log.levels.ERROR)
       end
     end,
     on_stdout = function(_, data)
@@ -173,44 +180,36 @@ vim.api.nvim_create_user_command('JuliaLspInstall', function()
       end
     end,
   })
+end
+
+-- Create user command to install LanguageServer.jl in the @nvim-lspconfig environment
+vim.api.nvim_create_user_command("JuliaLspInstall", function()
+  run_julia_lsp_job(
+    'using Pkg; Pkg.add("LanguageServer"); Pkg.instantiate(); using LanguageServer',
+    "Installing LanguageServer.jl in @nvim-lspconfig environment...",
+    "LanguageServer.jl installed successfully! Restart Neovim or reopen Julia files to use it.",
+    "Failed to install LanguageServer.jl. Run: julia --project=@nvim-lspconfig --startup-file=no -e 'using Pkg; Pkg.instantiate()'"
+  )
 end, { desc = "Install Julia LanguageServer.jl in @nvim-lspconfig environment" })
 
+-- Update LanguageServer.jl and its recorded dependencies
+vim.api.nvim_create_user_command("JuliaLspUpdate", function()
+  run_julia_lsp_job(
+    'using Pkg; Pkg.instantiate(); Pkg.update("LanguageServer"); using LanguageServer',
+    "Updating LanguageServer.jl in @nvim-lspconfig environment...",
+    "LanguageServer.jl updated successfully! Restart Neovim or reopen Julia files to use it.",
+    "Failed to update LanguageServer.jl. Run: julia --project=@nvim-lspconfig --startup-file=no -e 'using Pkg; Pkg.instantiate(); Pkg.update(\"LanguageServer\")'"
+  )
+end, { desc = "Update LanguageServer.jl in @nvim-lspconfig environment" })
+
 -- Command to update LanguageServer.jl to dev version
-vim.api.nvim_create_user_command('JuliaLspUpdateDev', function()
-  vim.notify("Updating LanguageServer.jl to dev version (master branch)...", vim.log.levels.INFO)
-  local project_env = "@nvim-lspconfig"
-  vim.fn.jobstart({
-    'julia',
-    '--project=' .. project_env,
-    '-e',
-    'using Pkg; Pkg.rm("LanguageServer"); Pkg.add(PackageSpec(name="LanguageServer", url="https://github.com/julia-vscode/LanguageServer.jl", rev="master"))'
-  }, {
-    on_exit = function(_, exit_code)
-      if exit_code == 0 then
-        vim.notify("LanguageServer.jl updated to dev version! Restart Neovim and reopen Julia files.", vim.log.levels.INFO)
-      else
-        vim.notify("Failed to update. Try manually: julia --project=@nvim-lspconfig -e 'using Pkg; Pkg.rm(\"LanguageServer\"); Pkg.add(PackageSpec(name=\"LanguageServer\", url=\"https://github.com/julia-vscode/LanguageServer.jl\", rev=\"master\"))'", vim.log.levels.ERROR)
-      end
-    end,
-    on_stdout = function(_, data)
-      if data then
-        for _, line in ipairs(data) do
-          if line ~= "" then
-            print(line)
-          end
-        end
-      end
-    end,
-    on_stderr = function(_, data)
-      if data then
-        for _, line in ipairs(data) do
-          if line ~= "" then
-            print(line)
-          end
-        end
-      end
-    end,
-  })
+vim.api.nvim_create_user_command("JuliaLspUpdateDev", function()
+  run_julia_lsp_job(
+    'using Pkg; Pkg.rm("LanguageServer"); Pkg.add(PackageSpec(name="LanguageServer", url="https://github.com/julia-vscode/LanguageServer.jl", rev="master")); Pkg.instantiate(); using LanguageServer',
+    "Updating LanguageServer.jl to dev version (master branch)...",
+    "LanguageServer.jl updated to dev version! Restart Neovim and reopen Julia files.",
+    "Failed to update LanguageServer.jl to dev version."
+  )
 end, { desc = "Update LanguageServer.jl to dev version (master branch)" })
 
 -- Command to check Julia LSP status
