@@ -147,8 +147,9 @@ Project root is resolved by `core.typst-project`: `TYPST_ROOT` if set, else the 
 <Leader>Kp      " Start markdown preview
 <Leader>Ks      " Stop markdown preview
 <Leader>Kv      " Toggle markdown preview
-<Leader>Ki      " Peek image (Markdown/Obsidian float)
-<Leader>Kx      " Clear image preview
+<Leader>Ki      " Refresh media peek
+<Leader>Kx      " Clear media peek
+<Leader>Ko      " Open attachment externally
 
 <Leader>Kln     " Autolist: Next list style
 <Leader>Klp     " Autolist: Previous list style
@@ -180,7 +181,7 @@ Table editing operations for markdown and quarto files (table-nvim):
 <Leader>KtT     " Insert table (no outline)
 ```
 
-**Note**: Table operations live under `<Leader>Kt…`. Markdown preview is `<Leader>Kp` (start), `<Leader>Ks` (stop), `<Leader>Kv` (toggle). Media embeds: cursor peek for `![](…)` / `![[…]]` (image or PDF). Esc dismisses; on PDFs `]`/`[` (or `<C-f>`/`<C-b>`) change page. `<Leader>Ki` refreshes; `<Leader>Kx` clears; `<Leader>Ko` opens externally.
+**Note**: Table editing uses `<Leader>Kt…`. Markdown preview uses `<Leader>Kp` / `Ks` / `Kv`. Media and URL peeks are documented in [Media and link peeks](/guide/media-peeks).
 
 ## Academic Workflow
 

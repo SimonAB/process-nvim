@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'process-nvim',
-  description: 'Neovim configuration for academic research, scientific computing, and document preparation',
+  description: 'Neovim configuration for research writing and scientific computing',
   base: '/process-nvim/',
   cleanUrls: true,
 
@@ -14,6 +14,7 @@ export default defineConfig({
       {
         text: 'Guides',
         items: [
+          { text: 'Media and link peeks', link: '/guide/media-peeks' },
           { text: 'Troubleshooting', link: '/TROUBLESHOOTING_GUIDE' },
           { text: 'Performance', link: '/PERFORMANCE_OPTIMISATIONS' },
           { text: 'LSP Setup', link: '/advanced/lsp-setup' }
@@ -32,8 +33,9 @@ export default defineConfig({
         ]
       },
       {
-        text: 'Operations',
+        text: 'Guides',
         items: [
+          { text: 'Media and link peeks', link: '/guide/media-peeks' },
           { text: 'Troubleshooting', link: '/TROUBLESHOOTING_GUIDE' },
           { text: 'Performance Optimisations', link: '/PERFORMANCE_OPTIMISATIONS' }
         ]

@@ -178,6 +178,9 @@ K                    " Show documentation
 " Markdown
 <Space>Kp            " Start preview
 <Space>Kv            " Toggle preview
+<Space>Ki            " Refresh media peek
+<Space>Kx            " Clear media peek
+<Space>Ko            " Open attachment externally
 <Space>Ktf           " Format table
 <Space>Ktn/Ktp       " Navigate table cells
 <Space>Kto/KtO      " Insert row below/above
@@ -321,6 +324,10 @@ local obsidian_path = "/Users/<username>/Library/Mobile Documents/iCloud~md~obsi
 ```
 
 Callouts: `<Space>O!` plus a key (e.g. `<Space>O!w` for warning)—normal mode inserts a block under the cursor line; in visual mode the same sequence wraps the selection. See **docs/reference/keymaps.md** for the full key list.
+
+### Media and link peeks
+
+In Markdown or Obsidian buffers, place the cursor on an image/PDF embed or a web URL to open a popup (Kitty graphics). Esc dismisses; Enter opens a link in the browser. See [Media and link peeks](/guide/media-peeks).
 
 ## Julia Setup
 

@@ -2,28 +2,28 @@
 
 [Documentation](https://simonab.github.io/process-nvim/)
 
-Neovim configuration optimised for academic research and scientific computing. Document processing: LaTeX (VimTeX, SyncTeX), Markdown (preview, Obsidian), Quarto (R/Python/Julia execution), Typst (preview). Scientific computing: Julia REPL (multi-threaded), Python LSP (pyright), R execution. Development: LSP (15+ languages via Mason), completion ([blink.cmp](https://github.com/Saghen/blink.cmp) with [blink.lib](https://github.com/Saghen/blink.lib)), terminal integration, Git integration. Modular architecture. vim.pack plugin management. Neovim **0.13-dev (Homebrew HEAD)** recommended; **0.12+** minimum.
+process-nvim is a Neovim configuration for research writing and scientific computing. It covers LaTeX (VimTeX, SyncTeX), Markdown and Obsidian (preview and media peeks), Quarto, Typst, Julia REPLs, Python and R, LSP via Mason, and terminal integration. The configuration is modular Lua and uses `vim.pack`. Neovim **0.13-dev (Homebrew HEAD)** is recommended; **0.12+** is the minimum.
 
 ## Features
 
-### Document Processing
+### Document processing
 
 - LaTeX: VimTeX, bidirectional SyncTeX (Skim)
-- Markdown: Live preview, Obsidian integration
-- Quarto: Code execution (R, Python, Julia)
-- Typst: Preview (typst-preview), CLI compile/watch (`typst c` / `typst w`)
+- Markdown: live preview, Obsidian, cursor peeks for images, PDFs, and web links
+- Quarto: code execution (R, Python, Julia)
+- Typst: preview and CLI compile/watch (`typst c` / `typst w`)
 
-### Scientific Computing
+### Scientific computing
 
 - Julia: REPL integration, multi-threaded execution
 - Python: LSP (pyright)
-- R: Code execution, project management
+- R: code execution, project management
 
-### Development Environment
+### Development environment
 
 - LSP: 15+ languages (Mason)
-- Completion: blink.cmp (with blink.lib dependency)
-- Terminal: Code block detection
+- Completion: blink.cmp (with blink.lib)
+- Terminal: code-block detection
 - Git: GitSigns, LazyGit
 
 ## Requirements
@@ -106,6 +106,7 @@ Plugins install automatically on first launch (vim.pack). Mason prompts for lang
 | `<localleader>lb`                   | Compile (alias of `<localleader>ll`; latexmk runs biber when needed) |
 | `<localleader>tp`–`<localleader>tw` | Typst preview / sync / `typst c` / `typst w` |
 | `<leader>Kp`                        | Markdown preview                             |
+| `<leader>Ki` / `Kx` / `Ko`          | Media peek refresh / clear / open externally |
 | `<leader>Qp`                        | Quarto preview                               |
 
 

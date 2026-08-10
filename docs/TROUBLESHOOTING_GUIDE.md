@@ -70,6 +70,19 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 - Use `<leader>Kp` to start preview
 - Check browser permissions for local file access
 
+### Media and link peeks
+
+#### No image or PDF popup
+- Use a Kitty-graphics terminal (Ghostty or Kitty). Terminal.app does not support these graphics.
+- Place the cursor on an embed line (`![](…)` or `![[…]]`).
+- For PDFs, ensure `pdftoppm` is on `$PATH` (`brew install poppler`).
+- Use `<leader>Ki` to refresh and `<leader>Kx` to clear overlays.
+
+#### Website peek is text-only, or stuck on Loading…
+- Reload Neovim so `web-peek` is loaded.
+- Sites with Open Graph images (for example neovim.io) show that art; others use a Microlink landscape-mobile screenshot and require network access.
+- Esc dismisses without reopening until the cursor leaves the URL line. Enter opens the browser.
+
 ### Language Server Issues
 
 #### Julia LSP not starting

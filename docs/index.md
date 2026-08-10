@@ -3,62 +3,64 @@ layout: home
 
 hero:
   name: process-nvim
-  text: Neovim for research and scientific workflows
-  tagline: LaTeX, Markdown, Quarto, Typst, Julia, and LSP in one maintainable setup.
+  text: A Neovim configuration for research
+  tagline: Document preparation, scientific computing, and editing in one setup.
 
 features:
-  - icon: 🚀
-    title: Fast Setup
-    details: Neovim 0.13-dev (HEAD) recommended, vim.pack plugin management, and clear install paths for macOS and Arch Linux.
-  - icon: 📄
-    title: Writing and Publishing
-    details: VimTeX with SyncTeX, Markdown preview, Quarto rendering, and Typst preview/compile workflows.
-  - icon: 🧪
-    title: Scientific Computing
-    details: Julia REPL integration, Python and R support, and terminal-first code execution.
-  - icon: 🔧
-    title: Language Tooling
-    details: 15+ LSP servers through Mason, diagnostics, formatting, and completion via blink.cmp.
-  - icon: 🧭
-    title: Discoverable Keymaps
-    details: Which-key guided leader mappings with consistent groups for editing, docs, terminal, and LSP.
-  - icon: ⚙️
-    title: Maintainable Design
-    details: Modular Lua architecture with deferred loading and practical defaults for daily use.
+  - title: Document workflows
+    details: LaTeX (VimTeX, SyncTeX), Markdown, Obsidian, Quarto, and Typst — preview and compile from Neovim.
+  - title: Media and link peeks
+    details: Cursor peeks for images, PDFs, and HTTP(S) links in Markdown. Esc dismisses; Enter opens externally.
+  - title: Scientific computing
+    details: Julia REPL integration with code send, plus Python and R support.
+  - title: Language servers
+    details: Mason-managed LSP, diagnostics, formatting, and completion with blink.cmp.
+  - title: Keymaps
+    details: Which-key groups with consistent leader prefixes for search, docs, terminal, and LSP.
+  - title: Configuration layout
+    details: Modular Lua, vim.pack, and deferred plugin loading.
 ---
 
-## Start Here
+## Getting started
 
-process-nvim is built for Neovim 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum) and uses the native `vim.pack` package manager rather than
-third-party plugin managers. It combines fast startup, modular Lua configuration, and practical
-research tooling in one setup: writing workflows (LaTeX, Markdown, Quarto, Typst), terminal-first
-execution, and strong LSP support for day-to-day scientific and technical work.
+process-nvim is a Neovim configuration for academic writing and scientific computing. Installation is straightforward if you already use Homebrew (macOS) or pacman/AUR (Arch). The configuration targets Neovim **0.13-dev** (Homebrew HEAD recommended) and requires **0.12+** for `vim.pack`.
 
-- [Installation Guide](/INSTALLATION_GUIDE) - platform dependencies and first launch
-- [Quick Start](/quickstart) - essential keymaps and first workflow checks
-- [Keymaps Reference](/reference/keymaps) - complete leader/localleader map catalogue
-- [Troubleshooting](/TROUBLESHOOTING_GUIDE) - fixes for plugin, LSP, terminal, and SyncTeX issues
-- [Utility scripts](https://github.com/SimonAB/process-nvim/blob/main/scripts/README.md) - SyncTeX, vault commit, config tests
+If you are setting this up for the first time, start here:
 
-## Core Workflows
+1. [Installation Guide](/INSTALLATION_GUIDE) — dependencies and first launch
+2. [Quick Start](/quickstart) — essential keymaps and checks
+3. [Media and link peeks](/guide/media-peeks) — images, PDFs, and website previews
+
+Further reading:
+
+- [Keymaps Reference](/reference/keymaps)
+- [Troubleshooting](/TROUBLESHOOTING_GUIDE)
+- [Utility scripts](https://github.com/SimonAB/process-nvim/blob/main/scripts/README.md)
+
+## What is included
 
 ### Writing and publishing
-- **LaTeX**: `\ll` compile, `\lv` forward search, Skim/Zathura inverse search
-- **Markdown**: `<Leader>Kp` preview, plus table editing mappings under `<Leader>Kt`
-- **Quarto**: `<Leader>Qp` preview and `<Leader>QR*` rendering shortcuts
-- **Typst**: `<localleader>tp` preview, `<localleader>tc` / `<localleader>tw` compile and watch (monorepo-aware `--root`)
+
+| Tool | Typical entry points |
+| --- | --- |
+| LaTeX | `\ll` compile, `\lv` forward search |
+| Markdown | `<Leader>Kp` preview; `<Leader>Kt…` tables |
+| Media peeks | Cursor on `![](…)` / `![[…]]` or an HTTP(S) URL |
+| Quarto | `<Leader>Qp` preview; `<Leader>QR*` render |
+| Typst | `<localleader>tp` preview; `tc` / `tw` compile and watch |
 
 ### Scientific coding
-- **Julia REPL**: `<Leader>Jrh`, `<Leader>Jrv`, `<Leader>Jrf` launch layouts
-- **Code send**: `<C-i>`, `<C-c>`, `<C-s>` for line, block, and selection; blocks include Quarto fences, `# %%` cells, and `##` sections; `yic` yanks fenced or `# %%` chunks
-- **LSP controls**: `gd`, `K`, `<Leader>Lf`, `<Leader>Ll`, `<Leader>Lr`
 
-### Terminal-first workflow
-- `<C-t>` toggles the default terminal instance
-- `<Leader>Tt`, `<Leader>Th`, `<Leader>Tv`, `<Leader>Tf` provide managed terminal layouts
-- ToggleTerm and REPL mappings are designed to keep editing and execution in one view
+- Julia REPL layouts: `<Leader>Jrh`, `<Leader>Jrv`, `<Leader>Jrf`
+- Send code: `<C-i>` (line), `<C-c>` (block), `<C-s>` (selection); `yic` yanks fenced or `# %%` chunks
+- LSP: `gd`, `K`, `<Leader>Lf`, `<Leader>Ll`, `<Leader>Lr`
 
-## Essential Keymaps
+### Terminal
+
+- `<C-t>` toggles the default terminal
+- `<Leader>Tt` / `Th` / `Tv` / `Tf` open managed layouts
+
+## Essential keymaps
 
 ```vim
 " Navigation and search
@@ -75,7 +77,7 @@ K                   " Hover documentation
 <C-t>               " Toggle terminal
 <Space>Tt           " Smart vertical terminal
 
-" Writing workflows
+" Writing
 \ll                 " Compile LaTeX
 \lv                 " Forward search in PDF
 <Space>Kp           " Markdown preview
@@ -83,10 +85,11 @@ K                   " Hover documentation
 <localleader>tp     " Typst preview
 ```
 
-## Documentation Map
+## Documentation map
 
 - [Installation Guide](/INSTALLATION_GUIDE)
 - [Quick Start](/quickstart)
+- [Media and link peeks](/guide/media-peeks)
 - [Keymaps Reference](/reference/keymaps)
 - [LSP Setup](/advanced/lsp-setup)
 - [Performance Optimisations](/PERFORMANCE_OPTIMISATIONS)
