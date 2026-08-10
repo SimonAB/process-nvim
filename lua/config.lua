@@ -52,6 +52,8 @@ opt.timeoutlen = 300 -- Timeout length
 opt.swapfile = false -- Disable swap file
 opt.backup = false -- Disable backup file
 opt.undofile = true -- Enable undo file
+-- Persistent undo lives under stdpath("state")/undo; pruned after 90 days
+-- by core.cache-hygiene on startup.
 -- OS file watchers (0.13+) reload buffers in real time; no polling needed.
 opt.autoread = true
 -- Explicit lock path for vim.pack (default, but pin it for clarity across machines).
@@ -620,3 +622,10 @@ local function setup_markdown_link_syntax()
 end
 
 setup_markdown_link_syntax()
+
+-- Bound undo retention and trim leftover / oversized logs (non-blocking).
+vim.defer_fn(function()
+	pcall(function()
+		require("core.cache-hygiene").run()
+	end)
+end, 2500)

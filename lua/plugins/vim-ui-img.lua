@@ -57,7 +57,13 @@ function M.clean_path_fragment(raw)
 	local path = vim.trim(raw or "")
 	path = path:gsub("^<%s*", ""):gsub("%s*>$", "")
 	path = path:gsub("^%[", ""):gsub("%]$", "")
+	-- Some editors wrap destinations in quotes: ![]('/abs/path.pdf')
+	path = path:gsub("^[\"']+", ""):gsub("[\"']+$", "")
 	path = percent_decode(path)
+	-- Expand leading ~ after quote stripping.
+	if path:sub(1, 1) == "~" then
+		path = vim.fn.expand(path)
+	end
 
 	local page = 1
 	local page_from_hash = path:match("#[Pp]age=(%d+)") or path:match("#p(%d+)") or path:match("#(%d+)$")
@@ -133,6 +139,87 @@ function M.resolve_existing_path(fragment, document_path, bufnr)
 	return nil
 end
 
+-- Peek raster profile: PNG keeps slide text crisp; 144 DPI + 1600px suits a ~70% peek.
+local PDF_RENDER_PROFILE = "fitw-png-1600-aav"
+local PDF_DPI = "144"
+local PDF_SCALE_X = "1600"
+local PDF_EXT = ".png"
+
+---Discard cached page rasters older than this (also when the source PDF is newer).
+local CACHE_TTL_SEC = 24 * 60 * 60
+---At most one directory prune per hour of Neovim uptime.
+local PRUNE_INTERVAL_SEC = 60 * 60
+
+---In-memory PDF page-count cache (path → pages).
+local pdf_page_count_cache = {}
+local last_cache_prune_at = 0
+
+---@return string
+local function pdf_cache_dir()
+	return vim.fn.stdpath("cache") .. "/vim-ui-img"
+end
+
+---@param path string
+---@param page integer
+---@return string
+local function pdf_cache_path(path, page)
+	return string.format(
+		"%s/%s-p%s%s",
+		pdf_cache_dir(),
+		vim.fn.sha256(path .. ":" .. PDF_RENDER_PROFILE):sub(1, 16),
+		tostring(page),
+		PDF_EXT
+	)
+end
+
+---Return true when a cache file is usable (exists, within TTL, not older than source).
+---@param out_path string
+---@param src_path string|nil
+---@return boolean
+local function cache_entry_is_fresh(out_path, src_path)
+	if vim.fn.filereadable(out_path) ~= 1 then
+		return false
+	end
+	local out_mtime = vim.fn.getftime(out_path)
+	if out_mtime <= 0 then
+		return false
+	end
+	if (os.time() - out_mtime) > CACHE_TTL_SEC then
+		return false
+	end
+	if type(src_path) == "string" and src_path ~= "" then
+		local src_mtime = vim.fn.getftime(src_path)
+		if src_mtime > 0 and out_mtime < src_mtime then
+			return false
+		end
+	end
+	return true
+end
+
+---Delete cache files older than the TTL (throttled).
+local function prune_expired_cache()
+	local now = os.time()
+	if (now - last_cache_prune_at) < PRUNE_INTERVAL_SEC then
+		return
+	end
+	last_cache_prune_at = now
+
+	local dir = pdf_cache_dir()
+	if vim.fn.isdirectory(dir) ~= 1 then
+		return
+	end
+
+	for name, ftype in vim.fs.dir(dir) do
+		if ftype == "file" then
+			local path = dir .. "/" .. name
+			local mtime = vim.fn.getftime(path)
+			if mtime > 0 and (now - mtime) > CACHE_TTL_SEC then
+				pcall(vim.fn.delete, path)
+			end
+		end
+	end
+end
+
 ---Convert a PDF page to a cached PNG (pdftoppm, else ImageMagick).
 ---@param path string
 ---@param page integer|nil
@@ -143,41 +230,34 @@ function M.ensure_pdf_png(path, page)
 		return path, nil
 	end
 
-	local cache_dir = vim.fn.stdpath("cache") .. "/vim-ui-img"
-	vim.fn.mkdir(cache_dir, "p")
-	-- Hash includes render profile so DPI/width bumps invalidate stale cache.
-	local out = string.format(
-		"%s/%s-p%s.png",
-		cache_dir,
-		vim.fn.sha256(path .. ":fitw-1600"):sub(1, 16),
-		tostring(page)
-	)
+	vim.fn.mkdir(pdf_cache_dir(), "p")
+	prune_expired_cache()
+	local out = pdf_cache_path(path, page)
 
-	if vim.fn.filereadable(out) == 1 then
-		local src_mtime = vim.fn.getftime(path)
-		local out_mtime = vim.fn.getftime(out)
-		if src_mtime > 0 and out_mtime >= src_mtime then
-			return out, nil
-		end
+	if cache_entry_is_fresh(out, path) then
+		return out, nil
 	end
-
-	-- Wide enough for ~70% window peeks; modest DPI keeps conversion snappy.
-	local dpi = "120"
+	-- Drop a stale entry so we never serve an expired file if conversion fails mid-way.
+	if vim.fn.filereadable(out) == 1 then
+		pcall(vim.fn.delete, out)
+	end
 
 	if vim.fn.executable("pdftoppm") == 1 then
 		local prefix = out:gsub("%.png$", "")
 		vim.fn.system({
 			"pdftoppm",
 			"-png",
+			"-aaVector",
+			"yes",
 			"-singlefile",
 			"-f",
 			tostring(page),
 			"-l",
 			tostring(page),
 			"-r",
-			dpi,
+			PDF_DPI,
 			"-scale-to-x",
-			"1600",
+			PDF_SCALE_X,
 			"-scale-to-y",
 			"-1",
 			path,
@@ -192,10 +272,10 @@ function M.ensure_pdf_png(path, page)
 		vim.fn.system({
 			"magick",
 			"-density",
-			dpi,
+			PDF_DPI,
 			string.format("%s[%d]", path, page - 1),
 			"-resize",
-			"1600x>",
+			PDF_SCALE_X .. "x>",
 			out,
 		})
 		if vim.v.shell_error == 0 and vim.fn.filereadable(out) == 1 then
@@ -213,11 +293,16 @@ function M.pdf_page_count(path)
 	if not is_pdf_path(path) then
 		return nil
 	end
+	local cached = pdf_page_count_cache[path]
+	if cached then
+		return cached
+	end
 	if vim.fn.executable("pdfinfo") == 1 then
 		local out = vim.fn.system({ "pdfinfo", path })
 		if vim.v.shell_error == 0 then
 			local n = tonumber(out:match("[Pp]ages:%s*(%d+)"))
 			if n and n > 0 then
+				pdf_page_count_cache[path] = n
 				return n
 			end
 		end
@@ -267,9 +352,40 @@ function M.prefetch_pdf_page(path, page)
 	if not is_pdf_path(path) or page < 1 then
 		return
 	end
-	vim.schedule(function()
-		M.ensure_pdf_png(path, page)
-	end)
+
+	local out = pdf_cache_path(path, page)
+	if cache_entry_is_fresh(out, path) then
+		return
+	end
+
+	if vim.fn.executable("pdftoppm") ~= 1 then
+		vim.schedule(function()
+			M.ensure_pdf_png(path, page)
+		end)
+		return
+	end
+
+	vim.fn.mkdir(pdf_cache_dir(), "p")
+	local prefix = out:gsub("%.png$", "")
+	vim.system({
+		"pdftoppm",
+		"-png",
+		"-aaVector",
+		"yes",
+		"-singlefile",
+		"-f",
+		tostring(page),
+		"-l",
+		tostring(page),
+		"-r",
+		PDF_DPI,
+		"-scale-to-x",
+		PDF_SCALE_X,
+		"-scale-to-y",
+		"-1",
+		path,
+		prefix,
+	}, { text = true }, function() end)
 end
 
 ---Resolve attachment under the cursor (image or PDF).

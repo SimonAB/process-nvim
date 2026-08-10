@@ -337,8 +337,12 @@ show_embed_popup = function(preview_path, title, opts)
 	if pdf_src then
 		local media = require("plugins.vim-ui-img")
 		media.prefetch_pdf_page(pdf_src, pdf_page + 1)
+		media.prefetch_pdf_page(pdf_src, pdf_page + 2)
 		if pdf_page > 1 then
 			media.prefetch_pdf_page(pdf_src, pdf_page - 1)
+		end
+		if pdf_page > 2 then
+			media.prefetch_pdf_page(pdf_src, pdf_page - 2)
 		end
 	end
 
@@ -364,6 +368,109 @@ show_embed_popup = function(preview_path, title, opts)
 	end, 10)
 end
 
+---Replace the image inside an existing peek (avoids float teardown on page turns).
+---@param preview_path string
+---@param title string
+---@param opts {
+---  fit_width?: boolean,
+---  pdf_src?: string,
+---  pdf_page?: integer,
+---  pdf_pages?: integer,
+---  fragment?: string,
+---}
+---@return boolean swapped
+local function swap_embed_image(preview_path, title, opts)
+	if not popup_is_open() then
+		return false
+	end
+
+	local win = embed_popup.win
+	local buf = embed_popup.buf
+	if not win or not buf or not vim.api.nvim_win_is_valid(win) or not vim.api.nvim_buf_is_valid(buf) then
+		return false
+	end
+
+	if embed_popup.image then
+		pcall(function()
+			embed_popup.image:clear()
+		end)
+		embed_popup.image = nil
+	end
+
+	local img_ok, img = pcall(image.from_file, preview_path, {
+		with_virtual_padding = false,
+		window = win,
+		buffer = buf,
+	})
+	if not img_ok or not img then
+		return false
+	end
+
+	local layout = compute_popup_layout(img.image_width or 0, img.image_height or 0, {
+		fit_width = opts.fit_width == true,
+	})
+	local width, height = layout.frame_w, layout.frame_h
+
+	vim.bo[buf].modifiable = true
+	local blanks = {}
+	for _ = 1, height do
+		blanks[#blanks + 1] = string.rep(" ", width)
+	end
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, blanks)
+	vim.bo[buf].modifiable = false
+
+	pcall(vim.api.nvim_win_set_config, win, {
+		relative = "cursor",
+		row = popup_row_for_height(height),
+		col = 0,
+		width = width,
+		height = height,
+		title = title,
+		title_pos = "left",
+	})
+
+	img.window = win
+	img.buffer = buf
+	img.ignore_global_max_size = true
+
+	embed_popup.image = img
+	embed_popup.path = preview_path
+	embed_popup.pdf_src = opts.pdf_src
+	embed_popup.pdf_page = opts.pdf_page or 1
+	embed_popup.pdf_pages = opts.pdf_pages
+	embed_popup.fragment = opts.fragment
+	embed_popup.fit_width = opts.fit_width == true
+
+	if opts.pdf_src then
+		local media = require("plugins.vim-ui-img")
+		local page = opts.pdf_page or 1
+		media.prefetch_pdf_page(opts.pdf_src, page + 1)
+		media.prefetch_pdf_page(opts.pdf_src, page + 2)
+		if page > 1 then
+			media.prefetch_pdf_page(opts.pdf_src, page - 1)
+		end
+	end
+
+	vim.defer_fn(function()
+		if not embed_popup.image or embed_popup.image ~= img then
+			return
+		end
+		if not vim.api.nvim_win_is_valid(win) then
+			return
+		end
+		pcall(function()
+			img:render({
+				x = layout.x,
+				y = layout.y,
+				width = layout.render_w,
+				height = layout.render_h,
+			})
+		end)
+	end, 10)
+
+	return true
+end
+
 ---Turn to a PDF page in the current peek session.
 ---@param page integer
 goto_pdf_page = function(page)
@@ -384,7 +491,6 @@ goto_pdf_page = function(page)
 	local media = require("plugins.vim-ui-img")
 	local png = media.ensure_pdf_png(pdf_src, page)
 	if not png then
-		-- Likely past the last page when page count is unknown.
 		if not embed_popup.pdf_pages and page > embed_popup.pdf_page then
 			embed_popup.pdf_pages = embed_popup.pdf_page
 		end
@@ -393,13 +499,16 @@ goto_pdf_page = function(page)
 
 	local pages = embed_popup.pdf_pages or media.pdf_page_count(pdf_src)
 	local title = popup_title(fragment, true, page, pages)
-	show_embed_popup(png, title, {
+	local opts = {
 		fit_width = true,
 		pdf_src = pdf_src,
 		pdf_page = page,
 		pdf_pages = pages,
 		fragment = fragment,
-	})
+	}
+	if not swap_embed_image(png, title, opts) then
+		show_embed_popup(png, title, opts)
+	end
 end
 
 ---Extract wiki or markdown image embed target from a line.
