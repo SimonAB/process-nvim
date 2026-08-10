@@ -32,27 +32,40 @@ local embed_popup = {
 	win = nil,
 	buf = nil,
 	image = nil,
+	---Cached PNG (or raster) path currently shown.
 	path = nil,
-	---Preview path dismissed with Esc; skip reopen until the cursor leaves this embed.
-	dismissed_path = nil,
-	esc_bufnr = nil,
+	---Absolute PDF path when previewing a multi-page document.
+	pdf_src = nil,
+	pdf_page = 1,
+	pdf_pages = nil,
+	fragment = nil,
+	fit_width = false,
+	---Source dismissed with Esc; skip reopen until the cursor leaves this embed.
+	dismissed_key = nil,
+	key_bufnr = nil,
 }
 
 local function popup_is_open()
 	return embed_popup.win ~= nil and vim.api.nvim_win_is_valid(embed_popup.win)
 end
 
-local function unmap_esc_dismiss()
-	local bufnr = embed_popup.esc_bufnr
-	embed_popup.esc_bufnr = nil
+local function dismiss_key(pdf_src, preview_path)
+	return pdf_src or preview_path
+end
+
+local function unmap_popup_keys()
+	local bufnr = embed_popup.key_bufnr
+	embed_popup.key_bufnr = nil
 	if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
 		return
 	end
-	pcall(vim.keymap.del, "n", "<Esc>", { buffer = bufnr })
+	for _, lhs in ipairs({ "<Esc>", "]", "[", "<C-f>", "<C-b>" }) do
+		pcall(vim.keymap.del, "n", lhs, { buffer = bufnr })
+	end
 end
 
 local function clear_embed_popup()
-	unmap_esc_dismiss()
+	unmap_popup_keys()
 	if embed_popup.image then
 		pcall(function()
 			embed_popup.image:clear()
@@ -68,6 +81,11 @@ local function clear_embed_popup()
 	embed_popup.win = nil
 	embed_popup.buf = nil
 	embed_popup.path = nil
+	embed_popup.pdf_src = nil
+	embed_popup.pdf_page = 1
+	embed_popup.pdf_pages = nil
+	embed_popup.fragment = nil
+	embed_popup.fit_width = false
 end
 
 ---Close the peek and remember it so CursorMoved does not reopen the same embed.
@@ -75,24 +93,8 @@ local function dismiss_embed_popup()
 	if not popup_is_open() then
 		return
 	end
-	embed_popup.dismissed_path = embed_popup.path
+	embed_popup.dismissed_key = dismiss_key(embed_popup.pdf_src, embed_popup.path)
 	clear_embed_popup()
-end
-
-local function map_esc_dismiss()
-	local bufnr = vim.api.nvim_get_current_buf()
-	if embed_popup.esc_bufnr == bufnr then
-		return
-	end
-	unmap_esc_dismiss()
-	vim.keymap.set("n", "<Esc>", function()
-		dismiss_embed_popup()
-	end, {
-		buffer = bufnr,
-		silent = true,
-		desc = "Dismiss media peek",
-	})
-	embed_popup.esc_bufnr = bufnr
 end
 
 ---@class EmbedPopupLayout
@@ -136,7 +138,6 @@ local function compute_popup_layout(image_width, image_height, opts)
 				height
 			)
 		end
-		-- Fallback ≈2:1 cell aspect when terminal metrics are missing.
 		if height == 0 and width ~= 0 then
 			return width, math.max(1, math.floor(width * 0.5 / aspect))
 		end
@@ -155,11 +156,9 @@ local function compute_popup_layout(image_width, image_height, opts)
 
 	local render_w, render_h
 	if fit_width then
-		-- Zoom to page width; height follows the page aspect ratio.
 		render_w, render_h = adjust(max_w, 0)
 		render_w = max_w
 		if render_h > max_h then
-			-- Page too tall for the screen: contain within the max box.
 			render_w, render_h = adjust(max_w, max_h)
 		end
 	else
@@ -169,7 +168,6 @@ local function compute_popup_layout(image_width, image_height, opts)
 	render_w = math.max(20, render_w)
 	render_h = math.max(6, render_h)
 
-	-- Peek chrome matches the image — no letterboxed empty band.
 	return {
 		frame_w = render_w,
 		frame_h = render_h,
@@ -184,16 +182,20 @@ end
 ---@param fragment string
 ---@param is_pdf boolean
 ---@param page integer|nil
+---@param pages integer|nil
 ---@return string
-local function popup_title(fragment, is_pdf, page)
+local function popup_title(fragment, is_pdf, page, pages)
 	local name = vim.fn.fnamemodify(fragment, ":t")
 	name = name:gsub("%%(%x%x)", function(hex)
 		return string.char(tonumber(hex, 16))
 	end)
-	if #name > 42 then
-		name = name:sub(1, 39) .. "…"
+	if #name > 36 then
+		name = name:sub(1, 33) .. "…"
 	end
 	if is_pdf then
+		if pages and pages > 0 then
+			return string.format(" %s · %d/%d ", name, page or 1, pages)
+		end
 		return string.format(" %s · p%s ", name, tostring(page or 1))
 	end
 	return " " .. name .. " "
@@ -211,14 +213,65 @@ local function popup_row_for_height(height)
 	return 1
 end
 
+local show_embed_popup
+local goto_pdf_page
+
+local function map_popup_keys()
+	local bufnr = vim.api.nvim_get_current_buf()
+	if embed_popup.key_bufnr == bufnr then
+		return
+	end
+	unmap_popup_keys()
+
+	vim.keymap.set("n", "<Esc>", function()
+		dismiss_embed_popup()
+	end, { buffer = bufnr, silent = true, desc = "Dismiss media peek" })
+
+	local function step(delta)
+		if not embed_popup.pdf_src then
+			return
+		end
+		goto_pdf_page(embed_popup.pdf_page + delta)
+	end
+
+	vim.keymap.set("n", "]", function()
+		step(1)
+	end, { buffer = bufnr, silent = true, desc = "Next PDF page" })
+	vim.keymap.set("n", "[", function()
+		step(-1)
+	end, { buffer = bufnr, silent = true, desc = "Previous PDF page" })
+	vim.keymap.set("n", "<C-f>", function()
+		step(1)
+	end, { buffer = bufnr, silent = true, desc = "Next PDF page" })
+	vim.keymap.set("n", "<C-b>", function()
+		step(-1)
+	end, { buffer = bufnr, silent = true, desc = "Previous PDF page" })
+
+	embed_popup.key_bufnr = bufnr
+end
+
 ---@param preview_path string
 ---@param title string
----@param opts { fit_width?: boolean }|nil
-local function show_embed_popup(preview_path, title, opts)
+---@param opts {
+---  fit_width?: boolean,
+---  pdf_src?: string,
+---  pdf_page?: integer,
+---  pdf_pages?: integer,
+---  fragment?: string,
+---}|nil
+show_embed_popup = function(preview_path, title, opts)
 	opts = opts or {}
 	if embed_popup.path == preview_path and embed_popup.win and vim.api.nvim_win_is_valid(embed_popup.win) then
 		return
 	end
+
+	-- Preserve session fields across clear (clear wipes pdf_*).
+	local pdf_src = opts.pdf_src
+	local pdf_page = opts.pdf_page or 1
+	local pdf_pages = opts.pdf_pages
+	local fragment = opts.fragment
+	local fit_width = opts.fit_width == true
+
 	clear_embed_popup()
 
 	local img_ok, img = pcall(image.from_file, preview_path, {
@@ -228,7 +281,9 @@ local function show_embed_popup(preview_path, title, opts)
 		return
 	end
 
-	local layout = compute_popup_layout(img.image_width or 0, img.image_height or 0, opts)
+	local layout = compute_popup_layout(img.image_width or 0, img.image_height or 0, {
+		fit_width = fit_width,
+	})
 	local width, height = layout.frame_w, layout.frame_h
 	local row = popup_row_for_height(height)
 
@@ -236,7 +291,6 @@ local function show_embed_popup(preview_path, title, opts)
 	vim.bo[buf].bufhidden = "wipe"
 	vim.bo[buf].filetype = "image_nvim_popup"
 	vim.bo[buf].modifiable = true
-	-- Blank lines reduce terminal glyph bleed under transparent float backgrounds.
 	local blanks = {}
 	for _ = 1, height do
 		blanks[#blanks + 1] = string.rep(" ", width)
@@ -272,10 +326,22 @@ local function show_embed_popup(preview_path, title, opts)
 	embed_popup.buf = buf
 	embed_popup.image = img
 	embed_popup.path = preview_path
-	embed_popup.dismissed_path = nil
-	map_esc_dismiss()
+	embed_popup.pdf_src = pdf_src
+	embed_popup.pdf_page = pdf_page
+	embed_popup.pdf_pages = pdf_pages
+	embed_popup.fragment = fragment
+	embed_popup.fit_width = fit_width
+	embed_popup.dismissed_key = nil
+	map_popup_keys()
 
-	-- Defer until the float has a real screen position (same pattern as image.nvim).
+	if pdf_src then
+		local media = require("plugins.vim-ui-img")
+		media.prefetch_pdf_page(pdf_src, pdf_page + 1)
+		if pdf_page > 1 then
+			media.prefetch_pdf_page(pdf_src, pdf_page - 1)
+		end
+	end
+
 	vim.defer_fn(function()
 		if not embed_popup.image or embed_popup.image ~= img then
 			return
@@ -296,6 +362,44 @@ local function show_embed_popup(preview_path, title, opts)
 			})
 		end)
 	end, 10)
+end
+
+---Turn to a PDF page in the current peek session.
+---@param page integer
+goto_pdf_page = function(page)
+	local pdf_src = embed_popup.pdf_src
+	local fragment = embed_popup.fragment
+	if not pdf_src or not fragment or not popup_is_open() then
+		return
+	end
+
+	page = math.max(1, page)
+	if embed_popup.pdf_pages then
+		page = math.min(page, embed_popup.pdf_pages)
+	end
+	if page == embed_popup.pdf_page and embed_popup.path then
+		return
+	end
+
+	local media = require("plugins.vim-ui-img")
+	local png = media.ensure_pdf_png(pdf_src, page)
+	if not png then
+		-- Likely past the last page when page count is unknown.
+		if not embed_popup.pdf_pages and page > embed_popup.pdf_page then
+			embed_popup.pdf_pages = embed_popup.pdf_page
+		end
+		return
+	end
+
+	local pages = embed_popup.pdf_pages or media.pdf_page_count(pdf_src)
+	local title = popup_title(fragment, true, page, pages)
+	show_embed_popup(png, title, {
+		fit_width = true,
+		pdf_src = pdf_src,
+		pdf_page = page,
+		pdf_pages = pages,
+		fragment = fragment,
+	})
 end
 
 ---Extract wiki or markdown image embed target from a line.
@@ -320,34 +424,52 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 		local line = vim.api.nvim_get_current_line()
 		local fragment = embed_target_on_line(line)
 		if not fragment then
-			embed_popup.dismissed_path = nil
+			embed_popup.dismissed_key = nil
 			clear_embed_popup()
 			return
 		end
 
 		local media = require("plugins.vim-ui-img")
 		local cleaned, page = media.clean_path_fragment(fragment)
-		local preview = media.resolve_preview_path(vim.api.nvim_buf_get_name(args.buf), fragment)
+		local doc = vim.api.nvim_buf_get_name(args.buf)
+		local preview, source, resolved_page = media.resolve_preview_path(doc, fragment)
 		if not preview then
 			clear_embed_popup()
 			return
 		end
 
-		-- Esc dismissed this embed; stay closed until the cursor leaves it.
-		if embed_popup.dismissed_path == preview then
+		local is_pdf = media.is_pdf_fragment(cleaned)
+		local key = dismiss_key(is_pdf and source or nil, preview)
+		if embed_popup.dismissed_key == key then
 			return
 		end
 
-		local is_pdf = media.is_pdf_fragment(cleaned)
-		local title = popup_title(cleaned, is_pdf, page)
-		show_embed_popup(preview, title, { fit_width = is_pdf })
+		-- Keep the current PDF page while the cursor stays on the same embed.
+		if is_pdf and popup_is_open() and embed_popup.pdf_src == source then
+			return
+		end
+
+		local pages = nil
+		if is_pdf and source then
+			pages = media.pdf_page_count(source)
+			page = resolved_page or page
+		end
+
+		local title = popup_title(cleaned, is_pdf, page, pages)
+		show_embed_popup(preview, title, {
+			fit_width = is_pdf,
+			pdf_src = is_pdf and source or nil,
+			pdf_page = is_pdf and page or nil,
+			pdf_pages = pages,
+			fragment = cleaned,
+		})
 	end,
 })
 
 vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
 	group = embed_augroup,
 	callback = function()
-		embed_popup.dismissed_path = nil
+		embed_popup.dismissed_key = nil
 		clear_embed_popup()
 	end,
 })

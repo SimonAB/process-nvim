@@ -180,7 +180,7 @@ Table editing operations for markdown and quarto files (table-nvim):
 <Leader>KtT     " Insert table (no outline)
 ```
 
-**Note**: Table operations live under `<Leader>Kt…`. Markdown preview is `<Leader>Kp` (start), `<Leader>Ks` (stop), `<Leader>Kv` (toggle). Media embeds: `image.nvim` shows a Kitty popup for the `![](…)` / `![[…]]` (image or PDF page) under the cursor. `<Leader>Ki` refreshes; `<Leader>Kx` clears; `<Leader>Ko` opens the attachment in Skim/Preview.
+**Note**: Table operations live under `<Leader>Kt…`. Markdown preview is `<Leader>Kp` (start), `<Leader>Ks` (stop), `<Leader>Kv` (toggle). Media embeds: cursor peek for `![](…)` / `![[…]]` (image or PDF). Esc dismisses; on PDFs `]`/`[` (or `<C-f>`/`<C-b>`) change page. `<Leader>Ki` refreshes; `<Leader>Kx` clears; `<Leader>Ko` opens externally.
 
 ## Academic Workflow
 

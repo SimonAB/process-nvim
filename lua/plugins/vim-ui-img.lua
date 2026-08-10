@@ -206,6 +206,25 @@ function M.ensure_pdf_png(path, page)
 	return nil, "need pdftoppm (poppler) or ImageMagick to preview PDF"
 end
 
+---Return the number of pages in a PDF, or nil when unknown.
+---@param path string
+---@return integer|nil
+function M.pdf_page_count(path)
+	if not is_pdf_path(path) then
+		return nil
+	end
+	if vim.fn.executable("pdfinfo") == 1 then
+		local out = vim.fn.system({ "pdfinfo", path })
+		if vim.v.shell_error == 0 then
+			local n = tonumber(out:match("[Pp]ages:%s*(%d+)"))
+			if n and n > 0 then
+				return n
+			end
+		end
+	end
+	return nil
+end
+
 ---Return true when a cleaned fragment looks like a PDF path.
 ---@param fragment string
 ---@return boolean
@@ -215,26 +234,42 @@ function M.is_pdf_fragment(fragment)
 end
 
 ---Resolve a document-relative image/PDF fragment to a previewable PNG/image path.
----Used by image.nvim `resolve_image_path` and the cursor PDF popup.
 ---@param document_path string
 ---@param image_path string
----@return string|nil
-function M.resolve_preview_path(document_path, image_path)
+---@param page_override integer|nil Force a PDF page (ignores `#page=` in the fragment).
+---@return string|nil preview_path, string|nil source_path, integer|nil page
+function M.resolve_preview_path(document_path, image_path, page_override)
 	local fragment, page = M.clean_path_fragment(image_path)
+	if page_override ~= nil then
+		page = math.max(1, page_override)
+	end
 	local resolved = M.resolve_existing_path(fragment, document_path, nil)
 	if not resolved then
-		return nil
+		return nil, nil, nil
 	end
 
 	if is_pdf_path(resolved) then
 		local png, err = M.ensure_pdf_png(resolved, page)
 		if not png then
 			vim.notify("PDF preview failed: " .. tostring(err), vim.log.levels.WARN)
+			return nil, resolved, page
 		end
-		return png
+		return png, resolved, page
 	end
 
-	return resolved
+	return resolved, resolved, nil
+end
+
+---Warm the PNG cache for a PDF page without blocking the UI.
+---@param path string
+---@param page integer
+function M.prefetch_pdf_page(path, page)
+	if not is_pdf_path(path) or page < 1 then
+		return
+	end
+	vim.schedule(function()
+		M.ensure_pdf_png(path, page)
+	end)
 end
 
 ---Resolve attachment under the cursor (image or PDF).
