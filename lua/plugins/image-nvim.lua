@@ -33,9 +33,26 @@ local embed_popup = {
 	buf = nil,
 	image = nil,
 	path = nil,
+	---Preview path dismissed with Esc; skip reopen until the cursor leaves this embed.
+	dismissed_path = nil,
+	esc_bufnr = nil,
 }
 
+local function popup_is_open()
+	return embed_popup.win ~= nil and vim.api.nvim_win_is_valid(embed_popup.win)
+end
+
+local function unmap_esc_dismiss()
+	local bufnr = embed_popup.esc_bufnr
+	embed_popup.esc_bufnr = nil
+	if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+		return
+	end
+	pcall(vim.keymap.del, "n", "<Esc>", { buffer = bufnr })
+end
+
 local function clear_embed_popup()
+	unmap_esc_dismiss()
 	if embed_popup.image then
 		pcall(function()
 			embed_popup.image:clear()
@@ -51,6 +68,31 @@ local function clear_embed_popup()
 	embed_popup.win = nil
 	embed_popup.buf = nil
 	embed_popup.path = nil
+end
+
+---Close the peek and remember it so CursorMoved does not reopen the same embed.
+local function dismiss_embed_popup()
+	if not popup_is_open() then
+		return
+	end
+	embed_popup.dismissed_path = embed_popup.path
+	clear_embed_popup()
+end
+
+local function map_esc_dismiss()
+	local bufnr = vim.api.nvim_get_current_buf()
+	if embed_popup.esc_bufnr == bufnr then
+		return
+	end
+	unmap_esc_dismiss()
+	vim.keymap.set("n", "<Esc>", function()
+		dismiss_embed_popup()
+	end, {
+		buffer = bufnr,
+		silent = true,
+		desc = "Dismiss media peek",
+	})
+	embed_popup.esc_bufnr = bufnr
 end
 
 ---@class EmbedPopupLayout
@@ -230,6 +272,8 @@ local function show_embed_popup(preview_path, title, opts)
 	embed_popup.buf = buf
 	embed_popup.image = img
 	embed_popup.path = preview_path
+	embed_popup.dismissed_path = nil
+	map_esc_dismiss()
 
 	-- Defer until the float has a real screen position (same pattern as image.nvim).
 	vim.defer_fn(function()
@@ -276,6 +320,7 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 		local line = vim.api.nvim_get_current_line()
 		local fragment = embed_target_on_line(line)
 		if not fragment then
+			embed_popup.dismissed_path = nil
 			clear_embed_popup()
 			return
 		end
@@ -288,6 +333,11 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 			return
 		end
 
+		-- Esc dismissed this embed; stay closed until the cursor leaves it.
+		if embed_popup.dismissed_path == preview then
+			return
+		end
+
 		local is_pdf = media.is_pdf_fragment(cleaned)
 		local title = popup_title(cleaned, is_pdf, page)
 		show_embed_popup(preview, title, { fit_width = is_pdf })
@@ -297,6 +347,7 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
 	group = embed_augroup,
 	callback = function()
+		embed_popup.dismissed_path = nil
 		clear_embed_popup()
 	end,
 })
