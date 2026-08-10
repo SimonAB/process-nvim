@@ -205,6 +205,9 @@ if ok then
 		{ "<leader>Kl", group = "List" },
 		{ "<leader>Kln", desc = "Autolist: Next list style" },
 		{ "<leader>Klp", desc = "Autolist: Previous list style" },
+		{ "<leader>Ki", desc = "Refresh media cursor preview" },
+		{ "<leader>Kx", desc = "Clear media previews" },
+		{ "<leader>Ko", desc = "Open image/PDF attachment externally" },
 
 		-- Theme management (enhanced with floating picker)
 		{ "<leader>YT", group = "Themes" },

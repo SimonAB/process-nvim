@@ -117,10 +117,10 @@ Core modules should use:
 **Always use this pattern for plugin configurations:**
 
 **Target environment and package manager:**
-- **Neovim 0.12+ is required** for this configuration.
+- **Neovim 0.13-dev (Homebrew HEAD) is recommended** for this configuration; **0.12+ is the minimum** for `vim.pack`.
 - **Use the built-in `vim.pack` package manager only** (no `lazy.nvim`, `packer.nvim`, etc.).
 - **Do not introduce alternative plugin managers**; extend the existing `vim.pack` and `plugin-loader.lua` mechanisms instead.
-	- On macOS, installing Neovim via Homebrew with `brew install neovim --HEAD` is an acceptable way to obtain a recent 0.12+ build.
+	- On macOS, install with `brew install neovim --HEAD` to get 0.13-dev features (OS-watcher `'autoread'`, `dir.lua`, `vim.ui.img`, `:restart` / `:detach!`). Revisit the stable bottle once Homebrew ships 0.13+.
 
 ```lua
 -- Configuration for plugin-name
@@ -379,12 +379,12 @@ end, { desc = "Description" })
 | Prefix | Group | Example |
 |--------|-------|---------|
 | `<leader>B` | Buffer operations | `<leader>Bn` = Next buffer |
-| `<leader>C` | Configuration | `<leader>Cs` = Reload configuration |
+| `<leader>C` | Configuration | `<leader>Cs` = Reload configuration; `<leader>Cr` = `:restart`; `<leader>Cd` = `:detach!` |
 | `<leader>F` | Forge (kanban / projects) | `<leader>Fs` = Status |
 | `<leader>R` | Frecency (recent files) | `<leader>Rf` = Find files (frecency) |
 | `<leader>G` | Git operations | `<leader>Gs` = Git status |
 | `<leader>J` | Julia operations | `<leader>Jrh` = Julia REPL horizontal |
-| `<leader>K` | Markdown preview | `<leader>Kp` = Preview |
+| `<leader>K` | Markdown / images | `<leader>Kp` = Preview; `<leader>Ki` = refresh cursor media popup; `<leader>Ko` = open attachment |
 | `<leader>L` | LSP operations | `<leader>Ll` = List servers |
 | `<leader>M` | Mason operations | `<leader>Mm` = Open Mason |
 | `<leader>O` | Obsidian operations | `<leader>On` = New note |
@@ -623,5 +623,27 @@ If you encounter patterns not covered here or need clarification:
 
 ---
 
-**Last Updated**: 2026-06-03
+**Last Updated**: 2026-08-10
 **Maintained By**: Configuration maintainers
+
+---
+
+## Learned User Preferences
+
+- Prefer transparent which-key-style floats (body and border) with no buffer glyph bleed-through; strongly reject opaque float backgrounds.
+- Keep floating UI consistent across which-key, Mason, Telescope (including grep preview), theme picker, plugin-update, and floating terminal; prefer shared helpers over one-off winhl tweaks.
+- Theme appearance should track macOS light/dark (auto-dark-mode / Ghostty); avoid yellow-ish light themes; dark preference aligns with Catppuccin Mocha, light with high-contrast options (e.g. GitHub Light High Contrast / Flexoki Light).
+- When reverting a brittle fix, retain unrelated speed and robustness improvements unless asked to discard them.
+- Prefer screenshot-driven iteration for float transparency; do not “improve” a working transparent look into opacity.
+- Finish feature work with docs/changelog updates when relevant; commit and push only when explicitly asked.
+
+## Learned Workspace Facts
+
+- This repo is the nested Neovim config at `~/Documents/etc/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features such as multicursor/graphics under active adoption).
+- Flexoki colourscheme is loaded from the fork `SimonAB/flexoki-neovim` (not stock kepano), including transparent editor/float options.
+- CodeCompanion ACP is wired for Cursor and local Ollama; AI keymaps live under the `<leader>A` which-key group.
+- Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL.
+- LaTeX Skim inverse/forward search lives under `scripts/` (Ghostty-aware); inverse search should auto-raise the terminal and works with both Herdr and tmux.
+- Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
+- Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
+- VitePress docs live under `docs/`; `.cursor/` and `.vscode/` are gitignored in this repo.

@@ -8,13 +8,19 @@ local PluginReload = require("core.plugin-reload")
 local progress_handle = nil
 
 ---Get vim.pack plugin list (managed plugins).
+---@param opts table|nil Optional vim.pack.get opts (e.g. `{ offline = false }`)
 ---@return table[] plugins
-local function get_pack_plugins()
+local function get_pack_plugins(opts)
 	if not vim.pack or type(vim.pack.get) ~= "function" then
 		return {}
 	end
 
-	return vim.pack.get()
+	local ok, plugins = pcall(vim.pack.get, nil, opts)
+	if not ok or type(plugins) ~= "table" then
+		return {}
+	end
+
+	return plugins
 end
 
 -- Progress and notification system (vim.notify only; no fidget dependency)
@@ -55,10 +61,21 @@ function PluginManager.get_installed_plugins()
 			name = (plug.spec or {}).name or "unknown",
 			path = plug.path,
 			rev = plug.rev,
+			rev_to = plug.rev_to,
 			active = plug.active,
 		})
 	end
 	return plugins
+end
+
+---Format a short git revision for status display.
+---@param rev string|nil
+---@return string
+local function short_rev(rev)
+	if type(rev) ~= "string" or rev == "" then
+		return "unknown"
+	end
+	return rev:sub(1, 8)
 end
 
 -- Update all plugins with progress feedback
@@ -88,6 +105,7 @@ function PluginManager.update_all_plugins()
 		return
 	end
 
+	-- Prefer the Lua API so PackChanged hooks and progress UI stay synchronous.
 	local update_ok, err = pcall(function()
 		vim.pack.update(nil, { force = true })
 	end)
@@ -134,7 +152,7 @@ function PluginManager.update_all_plugins()
 
 		local msg = string.format("Plugin updates complete (%d updated)", #updated_plugins)
 		if #updated_names > 0 then
-			msg = msg .. ". Restart Neovim if anything behaves oddly."
+			msg = msg .. ". Use :restart (<leader>Cr) if anything behaves oddly."
 		end
 		notify(msg, vim.log.levels.INFO, { timeout = 8000 })
 	else
@@ -171,7 +189,7 @@ function PluginManager.update_plugin(plugin_name)
 	if update_ok then
 		PluginReload.clear_plugins(plugin_name)
 		PluginReload.notify_restart_advice({ plugin_name })
-		notify("✓ " .. plugin_name .. " updated (restart Neovim if behaviour looks wrong)", vim.log.levels.INFO)
+		notify("✓ " .. plugin_name .. " updated (use :restart / <leader>Cr if behaviour looks wrong)", vim.log.levels.INFO)
 	else
 		notify("✗ Failed to update " .. plugin_name .. ": " .. tostring(err), vim.log.levels.ERROR)
 	end
@@ -184,26 +202,45 @@ function PluginManager.show_status()
 
 	vim.defer_fn(function()
 		local total_plugins = #plugins
-		local git_plugins = 0
+		local pending = 0
 		local status_lines = {}
 
 		for _, plugin in ipairs(plugins) do
-			git_plugins = git_plugins + 1
-			table.insert(status_lines, string.format("✓ %s @%s", plugin.name, plugin.rev or "unknown"))
+			local rev = short_rev(plugin.rev)
+			local line
+			if plugin.rev_to and plugin.rev and plugin.rev_to ~= plugin.rev then
+				pending = pending + 1
+				line = string.format(
+					"↑ %s  %s → %s",
+					plugin.name,
+					rev,
+					short_rev(plugin.rev_to)
+				)
+			else
+				line = string.format("✓ %s @%s", plugin.name, rev)
+			end
+			table.insert(status_lines, line)
 		end
 
-		local summary = string.format("Plugin Status: %d total, %d git repos", total_plugins, git_plugins)
+		local summary = string.format(
+			"Plugin Status: %d total, %d pending updates",
+			total_plugins,
+			pending
+		)
 
 		if handle then
-			handle.message = summary
-			vim.defer_fn(function() handle:finish() end, 2000)
+			local ok_popup, ProgressPopup = pcall(require, "core.progress-popup")
+			if ok_popup then
+				ProgressPopup.append_line(handle, summary)
+				vim.defer_fn(function() ProgressPopup.close(handle) end, 2000)
+			end
 		end
 
 		notify(summary, vim.log.levels.INFO, { timeout = 5000 })
 
 		-- Show detailed status in a floating window
 		local buf = vim.api.nvim_create_buf(false, true)
-		local width = 60
+		local width = 72
 		local height = math.min(20, #status_lines + 2)
 
 		local lines = { "Plugin Status Details:", "" }
@@ -412,6 +449,11 @@ function PluginManager.setup_commands()
 			notify("No legacy duplicates under pack/plugins/start", vim.log.levels.INFO)
 		end
 	end, { bang = true, desc = "Remove pack/plugins/start copies already in site/pack/core/opt (! = dry run)" })
+
+	-- Thin aliases for Neovim 0.13+ pack commands (discoverability).
+	vim.api.nvim_create_user_command("PackUpdateAll", function()
+		PluginManager.update_all_plugins()
+	end, { desc = "Alias: update all plugins via Plugin Manager" })
 end
 
 -- Initialize the plugin manager

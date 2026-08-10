@@ -2,7 +2,7 @@
 
 [Documentation](https://simonab.github.io/process-nvim/)
 
-Neovim configuration optimised for academic research and scientific computing. Document processing: LaTeX (VimTeX, SyncTeX), Markdown (preview, Obsidian), Quarto (R/Python/Julia execution), Typst (preview). Scientific computing: Julia REPL (multi-threaded), Python LSP (pyright), R execution. Development: LSP (15+ languages via Mason), completion ([blink.cmp](https://github.com/Saghen/blink.cmp) with [blink.lib](https://github.com/Saghen/blink.lib)), terminal integration, Git integration. Modular architecture. vim.pack plugin management. Neovim 0.12+ required.
+Neovim configuration optimised for academic research and scientific computing. Document processing: LaTeX (VimTeX, SyncTeX), Markdown (preview, Obsidian), Quarto (R/Python/Julia execution), Typst (preview). Scientific computing: Julia REPL (multi-threaded), Python LSP (pyright), R execution. Development: LSP (15+ languages via Mason), completion ([blink.cmp](https://github.com/Saghen/blink.cmp) with [blink.lib](https://github.com/Saghen/blink.lib)), terminal integration, Git integration. Modular architecture. vim.pack plugin management. Neovim **0.13-dev (Homebrew HEAD)** recommended; **0.12+** minimum.
 
 ## Features
 
@@ -33,7 +33,7 @@ Neovim configuration optimised for academic research and scientific computing. D
 - **Package Manager**:
   - **macOS**: Homebrew ([install here](https://brew.sh/))
   - **Arch Linux**: pacman (built-in) and yay/paru for AUR packages
-- Neovim 0.12+ (required for vim.pack plugin management)
+- Neovim 0.13-dev via Homebrew HEAD (recommended; 0.12+ minimum for vim.pack)
 - Git
 - Cargo (recommended: builds blink.cmp native fuzzy matcher from source)
 - ripgrep, fd (for Telescope fuzzy finding)
@@ -253,4 +253,4 @@ See [CHANGELOG](docs/CHANGELOG.md) for complete version history.
 
 Provided as-is for educational and personal use.
 
-**Note**: Requires Neovim 0.12+ (vim.pack). Older versions: use lazy.nvim or packer.nvim.
+**Note**: Requires Neovim 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum for vim.pack). Older versions: use lazy.nvim or packer.nvim.

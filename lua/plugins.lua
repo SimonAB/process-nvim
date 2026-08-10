@@ -1,4 +1,4 @@
--- Plugin Management with vim.pack (Neovim 0.12+)
+-- Plugin Management with vim.pack (Neovim 0.13-dev / 0.12+)
 -- Purpose: Declare plugins for vim.pack and register build hooks
 
 local plugins = {
@@ -20,6 +20,7 @@ local plugins = {
 	{ src = "https://github.com/nvim-lualine/lualine.nvim", name = "lualine.nvim" },
 	{ src = "https://github.com/nvim-tree/nvim-tree.lua", name = "nvim-tree.lua" },
 	{ src = "https://github.com/nvim-telescope/telescope.nvim", name = "telescope.nvim" },
+	{ src = "https://github.com/nvim-telescope/telescope-ui-select.nvim", name = "telescope-ui-select.nvim" },
 	{ src = "https://github.com/olimorris/codecompanion.nvim", name = "codecompanion.nvim" },
 	{
 		src = "https://github.com/nvim-telescope/telescope-fzf-native.nvim",
@@ -45,6 +46,7 @@ local plugins = {
 	},
 	{ src = "https://github.com/chomosuke/typst-preview.nvim", name = "typst-preview.nvim" },
 	{ src = "https://github.com/epwalsh/obsidian.nvim", name = "obsidian.nvim" },
+	{ src = "https://github.com/3rd/image.nvim", name = "image.nvim" },
 	{ src = "https://github.com/gaoDean/autolist.nvim", name = "autolist.nvim" },
 	{ src = "https://github.com/SCJangra/table-nvim", name = "table-nvim" },
 	{ src = "https://github.com/folke/zen-mode.nvim", name = "zen-mode.nvim" },

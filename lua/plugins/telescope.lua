@@ -85,12 +85,21 @@ if ok then
 				auto_validate = false,
 				db_safe_mode = false,
 			},
+			["ui-select"] = (function()
+				local ok_themes, themes = pcall(require, "telescope.themes")
+				if ok_themes then
+					return themes.get_dropdown({})
+				end
+				return {}
+			end)(),
 		},
 	})
 
 	-- Load telescope extensions
 	pcall(telescope.load_extension, "fzf")
 	pcall(telescope.load_extension, "frecency")
+	-- Neovim 0.13 builtins (:browse oldfiles, z=, :tselect, :recover) use vim.ui.select.
+	pcall(telescope.load_extension, "ui-select")
 
 	-- Telescope uses multiple floating windows (prompt/results/preview). Restyle on attach.
 	local augroup = vim.api.nvim_create_augroup("TelescopeFloatStyle", { clear = true })

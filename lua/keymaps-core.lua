@@ -161,6 +161,23 @@ map("n", "<leader>Cs", function()
 	print("✓ Configuration reloaded!")
 end, { desc = "Reload configuration" })
 
+-- Session resilience (Neovim 0.13+: :restart restores layout; :detach! survives UI loss)
+map("n", "<leader>Cr", function()
+	vim.cmd("restart")
+end, { desc = "Restart Neovim (restore session)" })
+
+map("n", "<leader>CR", function()
+	vim.cmd("restart!")
+end, { desc = "Restart Neovim (no session restore)" })
+
+map("n", "<leader>Cd", function()
+	vim.cmd("detach!")
+	vim.notify(
+		"UI marked detachable. If the terminal closes, reconnect with :connect",
+		vim.log.levels.INFO
+	)
+end, { desc = "Mark UI detachable (:detach!)" })
+
 -- LSP operations (built-in)
 map("n", "<leader>Ll", function()
 	local clients = vim.lsp.get_clients({ bufnr = 0 })

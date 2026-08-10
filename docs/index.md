@@ -9,7 +9,7 @@ hero:
 features:
   - icon: 🚀
     title: Fast Setup
-    details: Neovim 0.12+, vim.pack plugin management, and clear install paths for macOS and Arch Linux.
+    details: Neovim 0.13-dev (HEAD) recommended, vim.pack plugin management, and clear install paths for macOS and Arch Linux.
   - icon: 📄
     title: Writing and Publishing
     details: VimTeX with SyncTeX, Markdown preview, Quarto rendering, and Typst preview/compile workflows.
@@ -29,7 +29,7 @@ features:
 
 ## Start Here
 
-process-nvim is built for Neovim 0.12+ and uses the native `vim.pack` package manager rather than
+process-nvim is built for Neovim 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum) and uses the native `vim.pack` package manager rather than
 third-party plugin managers. It combines fast startup, modular Lua configuration, and practical
 research tooling in one setup: writing workflows (LaTeX, Markdown, Quarto, Typst), terminal-first
 execution, and strong LSP support for day-to-day scientific and technical work.

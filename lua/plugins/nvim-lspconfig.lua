@@ -62,7 +62,11 @@ local function on_attach(client, bufnr)
 	local opts = { noremap = true, silent = true, buffer = bufnr }
 
 	-- LSP keymaps for navigation and actions
+	-- Neovim 0.13+ goto follows 'switchbuf' (set in config.lua).
 	vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+	vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+	vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, opts)
+	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
 	
 	-- Hover keymap - NOTE: Currently not working with LanguageServer.jl (upstream issue)
 	-- The server doesn't respond to hover requests. Use 'gd' for go-to-definition instead.
@@ -94,6 +98,21 @@ local function on_attach(client, bufnr)
 		underline = true, -- Underline problematic code
 		severity_sort = true, -- Sort by severity
 	})
+
+	-- Opt-in LSP folding for languages where it complements Treesitter well.
+	local fold_fts = { lua = true, typescript = true, typescriptreact = true, javascript = true }
+	local ft = vim.bo[bufnr].filetype
+	local supports_folding = fold_fts[ft]
+		and type(client.supports_method) == "function"
+		and client:supports_method("textDocument/foldingRange")
+	if supports_folding then
+		local win = vim.api.nvim_get_current_win()
+		vim.wo[win][0].foldmethod = "expr"
+		vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+		if type(vim.lsp.foldtext) == "function" then
+			vim.wo[win][0].foldtext = "v:lua.vim.lsp.foldtext()"
+		end
+	end
 end
 
 -- Note: Most LSP server configurations are now handled by mason-lspconfig

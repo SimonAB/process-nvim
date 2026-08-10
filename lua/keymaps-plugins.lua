@@ -1240,6 +1240,33 @@ map("n", "<leader>Kp", "<cmd>MarkdownPreview<CR>", { desc = "Start Markdown Prev
 map("n", "<leader>Ks", "<cmd>MarkdownPreviewStop<CR>", { desc = "Stop Markdown Preview" })
 map("n", "<leader>Kv", "<cmd>MarkdownPreviewToggle<CR>", { desc = "Toggle Markdown Preview" })
 
+-- Markdown media previews (image.nvim cursor popup + attachment open)
+map("n", "<leader>Ki", function()
+	local ok, img = pcall(require, "plugins.vim-ui-img")
+	if not ok or not img then
+		vim.notify("media preview helper not available", vim.log.levels.WARN)
+		return
+	end
+	img.refresh()
+end, { desc = "Refresh media cursor preview" })
+
+map("n", "<leader>Kx", function()
+	local ok, img = pcall(require, "plugins.vim-ui-img")
+	if not ok or not img then
+		return
+	end
+	img.clear(false)
+end, { desc = "Clear media previews" })
+
+map("n", "<leader>Ko", function()
+	local ok, img = pcall(require, "plugins.vim-ui-img")
+	if not ok or not img then
+		vim.notify("media preview helper not available", vim.log.levels.WARN)
+		return
+	end
+	img.open_external()
+end, { desc = "Open image/PDF attachment externally" })
+
 -- Quarto
 map("n", "<leader>Qp", quarto_operation("quartoPreview"), { desc = "Quarto preview" })
 map("n", "<leader>Qc", quarto_operation("quartoClosePreview"), { desc = "Close Quarto preview" })

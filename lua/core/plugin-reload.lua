@@ -170,7 +170,7 @@ function M.notify_restart_advice(updated_names)
 	local list = table.concat(restart, ", ")
 	vim.notify(
 		string.format(
-			"Updated: %s. Quit and restart Neovim so Lua caches match the new plugin code.",
+			"Updated: %s. Run :restart (or <leader>Cr) so Lua caches match the new plugin code.",
 			list
 		),
 		vim.log.levels.WARN,

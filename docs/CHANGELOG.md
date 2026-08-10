@@ -1,6 +1,22 @@
 # Changelog
 
-## [Latest] - Forge kanban workflow refresh
+## [Latest] - Neovim 0.13-dev adoption
+
+### Runtime
+- **Homebrew HEAD**: Config targets Neovim **0.13.0-dev** (`brew install neovim --HEAD`). Minimum remains 0.12+ for `vim.pack`.
+- **`'autoread'`**: Removed the 500 ms `:checktime` poll; rely on OS file watchers with a FocusGained safety net.
+- **`dir.lua` hybrid**: `:edit` on a directory uses the built-in browser; nvim-tree stays the `<leader>e` sidebar (`hijack_directories = false`).
+- **Editor opts**: `'scrolloffpad'`, `'switchbuf'`, explicit `'packlockfile'`.
+- **Session**: `<leader>Cr` / `<leader>CR` for `:restart` / `:restart!`; `<leader>Cd` for `:detach!`.
+- **Media peeks (`image.nvim`)**: Cursor peek for Markdown/Obsidian `![]()` / `![[]]` embeds (Kitty graphics). PDFs convert to a cached PNG page (fit-to-width). `<leader>Ki` refreshes; `<leader>Kx` clears; `<leader>Ko` opens externally.
+- **Telescope ui-select**: Builtin pickers (`z=`, `:browse oldfiles`, …) go through Telescope.
+- **Treesitter**: Ensure `diff` parser; document core visual `]N` / `[N` sibling selection.
+- **Yank**: `vim.hl.hl_op` replaces deprecated `vim.hl.on_yank`.
+- **Plugin status**: Surfaces pending `rev → rev_to` updates from richer `vim.pack.get()`.
+
+---
+
+## [Previous] - Forge kanban workflow refresh
 
 ### Forge (keymaps, commands, dashboard)
 - **Forge positioning**: Reframed Forge as a **kanban/projects** workflow (Finder tags) rather than a GTD task manager.

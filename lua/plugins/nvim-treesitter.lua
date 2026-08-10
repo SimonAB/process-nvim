@@ -8,7 +8,9 @@ if ok then
 			"lua", "vim", "vimdoc", "javascript", "typescript",
 			"python", "julia", "r", "bash", "json", "yaml",
 			"markdown", "html", "css", "scss", "latex", "bibtex",
-			"toml", "dockerfile", "gitignore", "comment", "regex"
+			"toml", "dockerfile", "gitignore", "comment", "regex",
+			-- Bundled on Neovim 0.13+; keep listed so ensure_installed stays explicit.
+			"diff",
 		},
 		highlight = {
 			enable = true,
@@ -23,6 +25,8 @@ if ok then
 			},
 		},
 		indent = { enable = true },
+		-- Core 0.13 sibling maps: visual `]N` / `[N` expand to sibling nodes.
+		-- Do not remap them here — they would clash with textobject `]m` / `]]` moves.
 		incremental_selection = {
 			enable = true,
 			keymaps = {

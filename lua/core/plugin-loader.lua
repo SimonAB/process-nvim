@@ -29,6 +29,7 @@ local MODULE_TO_PACK = {
 	["lualine-nvim"] = "lualine.nvim",
 	["nvim-tree"] = "nvim-tree.lua",
 	["telescope"] = "telescope.nvim",
+	["telescope-ui-select-nvim"] = "telescope-ui-select.nvim",
 	["telescope-fzf-native-nvim"] = "telescope-fzf-native.nvim",
 	["telescope-frecency-nvim"] = "telescope-frecency.nvim",
 	["sqlite-lua"] = "sqlite.lua",
@@ -40,6 +41,7 @@ local MODULE_TO_PACK = {
 	["vimtex"] = "vimtex",
 	["typst-preview-nvim"] = "typst-preview.nvim",
 	["obsidian-nvim"] = "obsidian.nvim",
+	["image-nvim"] = "image.nvim",
 	["autolist-nvim"] = "autolist.nvim",
 	["table-nvim"] = "table-nvim",
 	["otter-nvim"] = "otter.nvim",
@@ -146,9 +148,13 @@ local LOAD_PHASES = {
 	-- Phase 2: DEFERRED (100ms) - UI and functionality
 	deferred = {
 		"nvim-tree",          -- File explorer (before bufferline so sidebar offsets see the tree)
+		"nvim-dir",           -- Built-in dir.lua tweaks (:edit on a folder)
 		"bufferline-nvim",    -- Buffer tabs
 		"lualine-nvim",       -- Status line
 		"telescope",          -- Fuzzy finder
+		"telescope-ui-select-nvim", -- vim.ui.select → Telescope (0.13 builtins)
+		"vim-ui-img",         -- PDF→PNG cache + attachment open helper
+		"image-nvim",         -- Markdown/PDF cursor popup via image.nvim (Kitty)
 		"codecompanion-nvim", -- AI chat (ACP + HTTP)
 		"telescope-fzf-native-nvim", -- Telescope native sorter (extension)
 		"telescope-frecency-nvim", -- Telescope frecency (extension)

@@ -5,6 +5,9 @@
 local map = vim.keymap.set -- For custom keymaps if needed
 
 -- Blink.cmp completion setup with simplified config
+-- Neovim 0.13 LSP commitCharacters are honoured by the client; blink surfaces
+-- them through its accept path. Do not set completeopt+=preselect here — it
+-- fights blink's menu selection model (see config.lua completeopt).
 local ok, blink = pcall(require, "blink.cmp")
 if ok then
 	local frecency_path = vim.fn.stdpath("state") .. "/blink/cmp/frecency.dat"

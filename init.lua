@@ -19,7 +19,7 @@ do
 	--- Safely schedule notifications outside of fast event contexts.
 	--- This prevents errors such as E5560 (nvim_echo in fast event).
 	--- Also suppresses known upstream deprecation warnings until plugins update
-	--- to Neovim 0.12 API changes. Adjust patterns below to re-enable if needed.
+	--- to Neovim 0.13 API changes. Adjust patterns below to re-enable if needed.
 	---@param msg any
 	---@param level? integer
 	---@param opts? table

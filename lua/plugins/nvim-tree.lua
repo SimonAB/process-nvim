@@ -10,6 +10,12 @@ if ok then
 		-- Match global `cursorline` off; avoids a solid `NvimTreeCursorLine` row under Flexoki.
 		cursorline = false,
 	},
+	-- Let Neovim 0.13+ `dir.lua` own `:edit` / `nvim .` on directories.
+	-- Sidebar browsing stays on `<leader>e` (NvimTreeToggle).
+	hijack_directories = {
+		enable = false,
+	},
+	hijack_netrw = true,
 	renderer = {
 		icons = {
 			show = {

@@ -29,6 +29,8 @@ opt.wrap = true      -- Enable line wrapping
 opt.linebreak = true -- Wrap at word boundaries
 opt.scrolloff = 8 -- Scroll offset
 opt.sidescrolloff = 8 -- Side scroll offset
+-- Keep the cursor vertically centred near EOF (Neovim 0.13+).
+opt.scrolloffpad = 1
 opt.conceallevel = 2 -- Enable concealment for Obsidian.nvim and VimTex
 
 -- Behavior
@@ -37,6 +39,10 @@ opt.clipboard = "unnamedplus" -- Use system clipboard
 opt.splitbelow = true -- Split below
 opt.splitright = true -- Split right
 opt.hidden = true -- Hide buffers instead of closing them
+-- LSP goto (0.13+) follows 'switchbuf'; prefer an existing window/tab.
+opt.switchbuf = "usetab,uselast"
+-- Native completion UI only; blink.cmp drives most menus and ignores preselect.
+opt.completeopt = "menu,menuone,noselect"
 
 -- Performance
 opt.updatetime = 250 -- Update time
@@ -46,7 +52,10 @@ opt.timeoutlen = 300 -- Timeout length
 opt.swapfile = false -- Disable swap file
 opt.backup = false -- Disable backup file
 opt.undofile = true -- Enable undo file
-opt.autoread = true -- Reload buffers when changed on disk
+-- OS file watchers (0.13+) reload buffers in real time; no polling needed.
+opt.autoread = true
+-- Explicit lock path for vim.pack (default, but pin it for clarity across machines).
+opt.packlockfile = vim.fn.stdpath("config") .. "/nvim-pack-lock.json"
 
 -- Security
 opt.modeline = false -- Disable modeline
@@ -182,11 +191,8 @@ local function create_optimised_autocmds()
   ---Saved while unfocused; `lazyredraw` coalesces screen updates during background churn.
   local lazyredraw_saved_os_focus = nil
 
-  -- Poll while focused or unfocused; `:checktime` alone only runs on buffer/focus events.
-  local auto_reload_timer = vim.uv.new_timer()
-  auto_reload_timer:start(500, 500, vim.schedule_wrap(function()
-    check_files_changed_on_disk(false)
-  end))
+  -- Neovim 0.13+ 'autoread' uses OS file watchers. Keep FocusGained `:checktime`
+  -- as a cheap safety net after resume; do not poll on a timer.
 
   vim.api.nvim_create_autocmd("FileChangedShellPost", {
     group = augroup,
@@ -269,11 +275,12 @@ local function create_optimised_autocmds()
     end,
   })
 
-  -- Highlight yanked text
+  -- Highlight yanked text (vim.hl.hl_op replaces deprecated vim.hl.on_yank).
   vim.api.nvim_create_autocmd("TextYankPost", {
     group = augroup,
+    desc = "Briefly highlight yanked region",
     callback = function()
-      vim.hl.on_yank({ timeout = 200 })
+      pcall(vim.hl.hl_op, { timeout = 200 })
     end,
   })
 

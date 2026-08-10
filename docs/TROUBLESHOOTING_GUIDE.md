@@ -15,7 +15,7 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 
 **Arch Linux (Zathura)**:
 - **Zathura configuration**: If needed, add to `~/.config/zathura/zathurarc`: `set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""`
-- **Neovim path**: Verify `which nvim` points to your Neovim 0.12 install
+- **Neovim path**: Verify `which nvim` points to your Neovim 0.13-dev (or 0.12+) install
 - **Synctex**: Ensure your build includes `-synctex=1` (configured via VimTeX latexmk options)
 - **Note**: VimTeX may configure this automatically. Test first without manual configuration.
 

@@ -34,7 +34,7 @@ cd yay && makepkg -si
 #### macOS
 
 ```bash
-# Neovim 0.12+ (install from HEAD as 0.12 is not yet in stable)
+# Neovim 0.13-dev (Homebrew HEAD; stable is still 0.12.x)
 brew install neovim --HEAD
 
 # Fuzzy finding utilities
@@ -50,7 +50,7 @@ brew install node
 #### Arch Linux
 
 ```bash
-# Neovim 0.12+ (install from AUR as 0.12 is not yet in official repos)
+# Neovim 0.13-dev nightly (prefer over older stable for this config)
 yay -S neovim-nightly-bin
 # or
 paru -S neovim-nightly-bin

@@ -7,7 +7,7 @@ Installation instructions for process-nvim on macOS and Arch Linux.
 - **Operating System**: 
   - macOS 10.15+ (tested on macOS 13+)
   - Arch Linux (tested on latest stable)
-- **Neovim**: 0.12 or later (required for vim.pack plugin management)
+- **Neovim**: 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum for vim.pack)
 - **Terminal**: 
   - **macOS**: [Ghostty](https://github.com/ghostty-org/ghostty), [iTerm2](https://iterm2.com/), or [Warp](https://www.warp.dev/) (256-colour support)
   - **Arch Linux**: Alacritty, Kitty, or any terminal with 256-colour support
@@ -50,21 +50,21 @@ For AUR packages, you'll need an AUR helper. Recommended options:
 
 ## Core Dependencies
 
-### 1. Neovim 0.12+
+### 1. Neovim 0.13-dev (recommended)
 
 #### macOS
 
-**Note**: Neovim 0.12 is not yet released in stable Homebrew. Install from HEAD to get 0.12:
+Stable Homebrew is still on 0.12.x. Install from HEAD for 0.13-dev features used by this config (`'autoread'` watchers, `dir.lua`, `vim.ui.img`, `:restart`):
 
 ```bash
-# Install Neovim 0.12 from HEAD (development version)
+# Install Neovim 0.13-dev from HEAD
 brew install neovim --HEAD
 
 # Verify version
-nvim --version  # Must show 0.12.0 or later
+nvim --version  # Must show 0.13.0-dev or later
 
-# If you need to update later
-brew upgrade neovim --HEAD
+# Update later
+brew uninstall --ignore-dependencies neovim && brew install neovim --HEAD
 
 # Build from source (alternative)
 git clone https://github.com/neovim/neovim
@@ -75,16 +75,16 @@ sudo make install
 
 #### Arch Linux
 
-**Note**: Neovim 0.12 is not yet in the official Arch repositories. Install from AUR:
+Install a nightly / git build from AUR for 0.13-dev:
 
 ```bash
-# Install Neovim 0.12 from AUR (requires yay or paru)
+# Install Neovim nightly from AUR (requires yay or paru)
 yay -S neovim-nightly-bin
 # or
 paru -S neovim-nightly-bin
 
 # Verify version
-nvim --version  # Must show 0.12.0 or later
+nvim --version  # Prefer 0.13.0-dev; 0.12+ minimum
 
 # Build from source (alternative, if needed)
 git clone https://github.com/neovim/neovim

@@ -147,6 +147,8 @@ Project root is resolved by `core.typst-project`: `TYPST_ROOT` if set, else the 
 <Leader>Kp      " Start markdown preview
 <Leader>Ks      " Stop markdown preview
 <Leader>Kv      " Toggle markdown preview
+<Leader>Ki      " Peek image (Markdown/Obsidian float)
+<Leader>Kx      " Clear image preview
 
 <Leader>Kln     " Autolist: Next list style
 <Leader>Klp     " Autolist: Previous list style
@@ -178,7 +180,7 @@ Table editing operations for markdown and quarto files (table-nvim):
 <Leader>KtT     " Insert table (no outline)
 ```
 
-**Note**: Table operations live under `<Leader>Kt…`. Markdown preview is `<Leader>Kp` (start), `<Leader>Ks` (stop), `<Leader>Kv` (toggle).
+**Note**: Table operations live under `<Leader>Kt…`. Markdown preview is `<Leader>Kp` (start), `<Leader>Ks` (stop), `<Leader>Kv` (toggle). Media embeds: `image.nvim` shows a Kitty popup for the `![](…)` / `![[…]]` (image or PDF page) under the cursor. `<Leader>Ki` refreshes; `<Leader>Kx` clears; `<Leader>Ko` opens the attachment in Skim/Preview.
 
 ## Academic Workflow
 
@@ -282,6 +284,9 @@ After `<C-c>`, the cursor jumps to the start of the next detected block when one
 
 ```vim
 <Leader>Cs      " Reload configuration
+<Leader>Cr      " Restart Neovim (restore session)
+<Leader>CR      " Restart Neovim (no session restore)
+<Leader>Cd      " Mark UI detachable (:detach!)
 <Leader>Cf      " Find config files
 <Leader>Cg      " Grep in config files
 ```
