@@ -631,11 +631,14 @@ If you encounter patterns not covered here or need clarification:
 ## Learned User Preferences
 
 - Prefer transparent which-key-style floats (body and border) with no buffer glyph bleed-through; strongly reject opaque float backgrounds.
-- Keep floating UI consistent across which-key, Mason, Telescope (including grep preview), theme picker, plugin-update, and floating terminal; prefer shared helpers over one-off winhl tweaks.
+- Keep floating UI consistent across which-key, Mason, Telescope (including grep preview), theme picker, plugin-update, floating terminal, and media/URL peeks; prefer shared helpers over one-off winhl tweaks.
 - Theme appearance should track macOS light/dark (auto-dark-mode / Ghostty); avoid yellow-ish light themes; dark preference aligns with Catppuccin Mocha, light with high-contrast options (e.g. GitHub Light High Contrast / Flexoki Light).
 - When reverting a brittle fix, retain unrelated speed and robustness improvements unless asked to discard them.
 - Prefer screenshot-driven iteration for float transparency; do not “improve” a working transparent look into opacity.
 - Finish feature work with docs/changelog updates when relevant; commit and push only when explicitly asked.
+- Prefer cursor/popup media peeks over inline embeds so previews do not shift lines, flicker, or loop on refresh.
+- Media/URL peeks: dismiss with Esc; open externally with Enter (avoid `o` / `Ctrl-o` clashes with Vim navigation); favour wide readable popups (≈70% window width, content-centred, height fits image; PDFs fit page width with multipage scroll).
+- For website peeks, keep strong Open Graph images when they work; when OG/icons are missing, use a Microlink **landscape mobile** viewport screenshot (`isMobile` + `isLandscape`), not a cropped desktop thumbnail.
 
 ## Learned Workspace Facts
 
@@ -647,3 +650,5 @@ If you encounter patterns not covered here or need clarification:
 - Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
 - Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
 - VitePress docs live under `docs/`; `.cursor/` and `.vscode/` are gitignored in this repo.
+- Markdown/Obsidian media peeks use image.nvim plus `vim-ui-img` helpers (`<leader>Ki` / `Kx` / `Ko`): raster embeds, PDF pages via pdftoppm (cached ~24h), and HTTP(S) link peeks (OG image or page screenshot).
+- Startup cache hygiene (`core.cache-hygiene`) prunes undofiles older than 90 days, truncates oversized LSP logs, and removes leftover `startup.log`; media caches live under `~/.cache/nvim/vim-ui-img/`.

@@ -155,6 +155,7 @@ local LOAD_PHASES = {
 		"telescope-ui-select-nvim", -- vim.ui.select → Telescope (0.13 builtins)
 		"vim-ui-img",         -- PDF→PNG cache + attachment open helper
 		"image-nvim",         -- Markdown/PDF cursor popup via image.nvim (Kitty)
+		"web-peek",           -- Markdown http(s) link peeks (title / OG image)
 		"codecompanion-nvim", -- AI chat (ACP + HTTP)
 		"telescope-fzf-native-nvim", -- Telescope native sorter (extension)
 		"telescope-frecency-nvim", -- Telescope frecency (extension)

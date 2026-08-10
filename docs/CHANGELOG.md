@@ -8,7 +8,8 @@
 - **`dir.lua` hybrid**: `:edit` on a directory uses the built-in browser; nvim-tree stays the `<leader>e` sidebar (`hijack_directories = false`).
 - **Editor opts**: `'scrolloffpad'`, `'switchbuf'`, explicit `'packlockfile'`.
 - **Session**: `<leader>Cr` / `<leader>CR` for `:restart` / `:restart!`; `<leader>Cd` for `:detach!`.
-- **Media peeks (`image.nvim`)**: Cursor peek for Markdown/Obsidian `![]()` / `![[]]` embeds (Kitty graphics). PDFs convert to a cached PNG page (fit-to-width). `<leader>Ki` refreshes; `<leader>Kx` clears; `<leader>Ko` opens externally.
+- **Media peeks (`image.nvim`)**: Cursor peeks for Markdown/Obsidian `![]()` / `![[]]` embeds (Kitty graphics). PDFs are converted to cached PNG pages (fit-to-width) with `]`/`[` paging. `<leader>Ki` refreshes; `<leader>Kx` clears; `<leader>Ko` opens externally.
+- **Website peeks**: On `http(s)` / bare `www` lines, show title and description. Prefer Open Graph images when present; otherwise use a Microlink landscape-mobile screenshot (`844×600`). Esc dismisses; Enter opens the browser. Embed lines use the media peek.
 - **Telescope ui-select**: Builtin pickers (`z=`, `:browse oldfiles`, …) go through Telescope.
 - **Treesitter**: Ensure `diff` parser; document core visual `]N` / `[N` sibling selection.
 - **Yank**: `vim.hl.hl_op` replaces deprecated `vim.hl.on_yank`.
