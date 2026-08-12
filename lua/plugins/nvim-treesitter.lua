@@ -9,6 +9,7 @@ if ok then
 			"python", "julia", "r", "bash", "json", "yaml",
 			"markdown", "html", "css", "scss", "latex", "bibtex",
 			"toml", "dockerfile", "gitignore", "comment", "regex",
+			"typst",
 			-- Bundled on Neovim 0.13+; keep listed so ensure_installed stays explicit.
 			"diff",
 		},

@@ -29,7 +29,7 @@
       "src": "https://github.com/catppuccin/nvim"
     },
     "codecompanion.nvim": {
-      "rev": "f1afd02537c68b3dd6e0d41d4adda5ef538e0473",
+      "rev": "9a8e8602a7c72d10a827880fbb6fcd8bfa3830c7",
       "src": "https://github.com/olimorris/codecompanion.nvim"
     },
     "flexoki-neovim": {

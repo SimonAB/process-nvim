@@ -8,8 +8,9 @@ if not ok then
 end
 
 -- Raster + PDF previews are drawn by our themed cursor peek below. Keep image.nvim
--- loaded for the Kitty backend / from_file API, but do not use its stock popup
--- (single-border, unthemed) or inline virt-line rendering.
+-- loaded for the Kitty backend / from_file API, but do not use its stock document
+-- integrations (they call Treesitter without nil-guards and crash when a grammar
+-- is missing; several ship enabled by default, including typst/asciidoc/neorg).
 image.setup({
 	backend = "kitty",
 	processor = "magick_cli",
@@ -17,6 +18,11 @@ image.setup({
 		markdown = { enabled = false },
 		html = { enabled = false },
 		css = { enabled = false },
+		typst = { enabled = false },
+		asciidoc = { enabled = false },
+		neorg = { enabled = false },
+		syslang = { enabled = false },
+		org = { enabled = false },
 	},
 	max_width = nil,
 	max_height = nil,
