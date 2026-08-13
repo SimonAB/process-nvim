@@ -239,6 +239,7 @@ Install language servers via Mason:
 - Terminal mappings: `<leader>T[1,2,3]` → `<leader>T[h,v,f]` (consistency with Julia REPL)
 - Julia REPL: `--threads=auto` enabled
 - File formatting: Two empty lines at end of file on save
+- Statusline: no LSP; conditional macro, visual selection (with word count), search count, and spell flags
 - Obsidian: `<leader>Op` pastes image, adds two newlines
 
 See [CHANGELOG](docs/CHANGELOG.md) for complete version history.

@@ -33,6 +33,11 @@ opt.sidescrolloff = 8 -- Side scroll offset
 opt.scrolloffpad = 1
 opt.conceallevel = 2 -- Enable concealment for Obsidian.nvim and VimTex
 
+-- Lualine owns mode, selection size, and search count; avoid duplicate echo on the last line.
+opt.showmode = false
+opt.showcmd = false
+opt.shortmess:append("S") -- suppress native [n/N] search count (lualine shows it)
+
 -- Behavior
 opt.mouse = "a" -- Enable mouse
 opt.clipboard = "unnamedplus" -- Use system clipboard

@@ -14,6 +14,8 @@
 - **Treesitter**: Ensure `diff` parser; document core visual `]N` / `[N` sibling selection.
 - **Yank**: `vim.hl.hl_op` replaces deprecated `vim.hl.on_yank`.
 - **Plugin status**: Surfaces pending `rev → rev_to` updates from richer `vim.pack.get()`.
+- **Statusline (lualine)**: Dropped LSP status. Conditional right-side indicators: macro recording (`REC @a`), visual selection size with units and word count (`3 lines - 42 words`), search match count (`2/17 matches`), and spell-language flags (🇬🇧 / 🇫🇷). Native `showmode`, `showcmd`, and `shortmess` `S` keep those counts in the bar rather than echoing below it.
+- **File formatting**: `BufWritePre` now enforces two empty lines at EOF on save.
 
 ---
 

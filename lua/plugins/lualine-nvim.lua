@@ -3,6 +3,24 @@
 
 local ok, lualine = pcall(require, "lualine")
 if ok then
+	local lualine_utils = require("lualine.utils.utils")
+
+	---Escape `%` so custom statusline text is not parsed as format items.
+	---@param text string
+	---@return string
+	local function stl_escape(text)
+		return lualine_utils.stl_escape(text)
+	end
+
+	---Wrap a statusline component so its output is safe for `%{}` parsing.
+	---@param fn fun(): string
+	---@return fun(): string
+	local function stl_component(fn)
+		return function()
+			return stl_escape(fn())
+		end
+	end
+
 	-- Lualine refresh-queue poll (default 16 ms). Higher = fewer wakeups next to the cursor.
 	local refresh_check_ms = 200
 	-- Flexoki: only remap V-BLOCK to the replace strip (purple). V-LINE and char-wise VISUAL keep
@@ -152,6 +170,149 @@ if ok then
 		}
 	end
 
+	---Show which register is being recorded; empty when idle.
+	---@return string
+	local function lualine_macro_recording()
+		local reg = vim.fn.reg_recording()
+		if reg == "" then
+			return ""
+		end
+		return "REC @" .. reg
+	end
+
+	---Spell-language flag when spell is on (🇬🇧 / 🇫🇷).
+	---@return string
+	local function lualine_spell_lang()
+		if not vim.wo.spell then
+			return ""
+		end
+		local primary = (vim.bo.spelllang or ""):match("^([^,]+)") or ""
+		local spell_flags = {
+			en_gb = "🇬🇧",
+			en_us = "🇺🇸",
+			en = "🇬🇧",
+			fr = "🇫🇷",
+		}
+		if spell_flags[primary] then
+			return spell_flags[primary]
+		end
+		if primary:match("^en") then
+			return "🇬🇧"
+		elseif primary:match("^fr") then
+			return "🇫🇷"
+		end
+		return "📝"
+	end
+
+	---Visual selection size with units; empty outside visual mode.
+	---@param count integer
+	---@return string
+	local function format_word_count(count)
+		return count .. (count == 1 and " word" or " words")
+	end
+
+	---@return string
+	local function visual_selection_text()
+		local mode = vim.fn.mode(true)
+		local region_type = mode == "V" and "V" or (mode:match("\22") and "\22" or "v")
+		local ok, region = pcall(vim.fn.getregion, vim.fn.getpos("v"), vim.fn.getpos("."), { type = region_type })
+		if not ok or not region or #region == 0 then
+			return ""
+		end
+		if mode:match("\22") then
+			return table.concat(region, " ")
+		end
+		return table.concat(region, "\n")
+	end
+
+	---@return string
+	local function lualine_visual_selection()
+		local mode = vim.fn.mode(true)
+		if mode ~= "v" and mode ~= "V" and not mode:match("\22") then
+			return ""
+		end
+
+		local line_start = vim.fn.line("v")
+		local line_end = vim.fn.line(".")
+		local col_start = vim.fn.col("v")
+		local col_end = vim.fn.col(".")
+
+		local text = visual_selection_text()
+		local words = vim.fn.wordcount().visual_words or 0
+		local word_suffix = " - " .. format_word_count(words)
+
+		if mode == "V" then
+			local n = math.abs(line_end - line_start) + 1
+			return n .. (n == 1 and " line" or " lines") .. word_suffix
+		end
+
+		if mode:match("\22") then
+			local rows = math.abs(line_end - line_start) + 1
+			local cols = math.abs(col_end - col_start) + 1
+			return string.format("%d×%d%s", rows, cols, word_suffix)
+		end
+
+		local chars = text ~= "" and vim.fn.strcharlen(text) or math.abs(col_end - col_start) + 1
+		return chars .. (chars == 1 and " char" or " chars") .. word_suffix
+	end
+
+	---Search match index with unit; empty when hlsearch is off.
+	---@return string
+	local function lualine_search_count()
+		if vim.v.hlsearch == 0 then
+			return ""
+		end
+		local ok, result = pcall(vim.fn.searchcount, { maxcount = 999, timeout = 500 })
+		if not ok or not result or result.total == 0 then
+			return ""
+		end
+		local total = math.min(result.total, result.maxcount)
+		return result.current .. "/" .. total .. " matches"
+	end
+
+	---Force a statusline redraw for indicators that change outside the slow poll.
+	local function refresh_statusline()
+		pcall(function()
+			lualine.refresh({ force = true, place = { "statusline" } })
+		end)
+	end
+
+	local refresh_augroup = vim.api.nvim_create_augroup("LualineConditionalRefresh", { clear = true })
+	vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
+		group = refresh_augroup,
+		desc = "Refresh statusline when macro recording starts or stops",
+		callback = refresh_statusline,
+	})
+	vim.api.nvim_create_autocmd("OptionSet", {
+		group = refresh_augroup,
+		pattern = { "spell", "spelllang" },
+		desc = "Refresh statusline when spell options change",
+		callback = refresh_statusline,
+	})
+	vim.api.nvim_create_autocmd({ "ModeChanged", "CursorMoved", "CursorMovedI" }, {
+		group = refresh_augroup,
+		desc = "Refresh statusline when visual selection changes",
+		callback = function(ev)
+			local mode = vim.fn.mode(true)
+			if mode == "v" or mode == "V" or mode:match("\22") then
+				refresh_statusline()
+				return
+			end
+			if ev.event == "ModeChanged" then
+				refresh_statusline()
+			end
+		end,
+	})
+	vim.api.nvim_create_autocmd({ "CursorMoved", "CmdlineChanged", "CmdlineLeave" }, {
+		group = refresh_augroup,
+		desc = "Refresh statusline when search position or pattern changes",
+		callback = function()
+			if vim.v.hlsearch == 1 or vim.fn.mode() == "c" then
+				refresh_statusline()
+			end
+		end,
+	})
+
 	lualine.setup({
 		options = {
 			theme = lualine_theme,
@@ -172,7 +333,13 @@ if ok then
 				{ "diagnostics", cond = lualine_when_os_window_focused },
 			},
 			lualine_c = { { pretty_path, path = 1 } },
-			lualine_x = { "filetype" },
+			lualine_x = {
+				{ stl_component(lualine_macro_recording) },
+				{ stl_component(lualine_visual_selection) },
+				{ stl_component(lualine_search_count) },
+				{ stl_component(lualine_spell_lang) },
+				"filetype",
+			},
 			lualine_y = { "progress" },
 			lualine_z = { "location" },
 		},
