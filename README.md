@@ -238,7 +238,7 @@ Install language servers via Mason:
 
 - Terminal mappings: `<leader>T[1,2,3]` → `<leader>T[h,v,f]` (consistency with Julia REPL)
 - Julia REPL: `--threads=auto` enabled
-- File formatting: Single newline at end of file on save
+- File formatting: Two empty lines at end of file on save
 - Obsidian: `<leader>Op` pastes image, adds two newlines
 
 See [CHANGELOG](docs/CHANGELOG.md) for complete version history.

@@ -286,7 +286,7 @@ local function create_optimised_autocmds()
     end,
   })
 
-  -- Remove trailing whitespace and enforce single newline at EOF on save
+  -- Remove trailing whitespace and enforce two empty lines at EOF on save
   vim.api.nvim_create_autocmd("BufWritePre", {
     group = augroup,
     pattern = "*",
@@ -325,7 +325,7 @@ local function create_optimised_autocmds()
         vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, collapsed_lines)
       end
 
-      -- Enforce exactly one newline at end of file
+      -- Enforce exactly two empty lines at end of file
       lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       if #lines > 0 then
         local non_empty_lines = {}
@@ -338,9 +338,10 @@ local function create_optimised_autocmds()
           end
         end
 
-        -- Ensure exactly one empty line at the end
+        -- Ensure exactly two empty lines at the end
         if #non_empty_lines > 0 then
-          non_empty_lines[#non_empty_lines + 1] = "" -- Add exactly one empty line
+          non_empty_lines[#non_empty_lines + 1] = ""
+          non_empty_lines[#non_empty_lines + 1] = ""
           vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, non_empty_lines)
         end
       end
