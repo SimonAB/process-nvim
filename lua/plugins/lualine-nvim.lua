@@ -125,7 +125,7 @@ if ok then
 		return theme
 	end
 
-	---Volatile Lualine segments (branch, diff, diagnostics, LSP) only when the terminal
+	---Volatile Lualine segments (branch, diff, diagnostics) only when the terminal
 	---window is focused; see `g:_nvim_os_window_focused` in `config.lua`.
 	---@return boolean
 	local function lualine_when_os_window_focused()
@@ -172,10 +172,7 @@ if ok then
 				{ "diagnostics", cond = lualine_when_os_window_focused },
 			},
 			lualine_c = { { pretty_path, path = 1 } },
-			lualine_x = {
-				"filetype",
-				{ "lsp_status", cond = lualine_when_os_window_focused },
-			},
+			lualine_x = { "filetype" },
 			lualine_y = { "progress" },
 			lualine_z = { "location" },
 		},
