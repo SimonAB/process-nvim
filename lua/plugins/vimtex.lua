@@ -249,6 +249,90 @@ vim.api.nvim_create_autocmd("User", {
   end,
 })
 
+-- Proofreading macros (Ivan thesis / AGENTS.md): visible colours in the buffer, not the PDF.
+local proof_cmd_skip = [[skip="\%#=1\\\\[{}]"]]
+-- matchgroup on start/end keeps the region inside the braces only; delim uses the same bg as the region.
+local proof_region_tpl = [[syntax region %s matchgroup=%s start="\\%s\s*{" %s end="}" contains=TOP,@NoSpell]]
+
+local proofreading_cmds = {
+  { cmd = "tighten", region = "texProofTighten", delim = "texProofCmdTighten", fg = "#4a3f2a", bg = "#ffcc80" },
+  { cmd = "edit", region = "texProofEdit", delim = "texProofCmdEdit", fg = "#4a2e2e", bg = "#ef9a9a" },
+  { cmd = "add", region = "texProofAdd", delim = "texProofCmdAdd", fg = "#3a4230", bg = "#c5e1a5" },
+  { cmd = "clarify", region = "texProofClarify", delim = "texProofCmdClarify", fg = "#2e3d48", bg = "#81d4fa" },
+  { cmd = "checkref", region = "texProofRef", delim = "texProofCmdRef", fg = "#2e4242", bg = "#80cbc4" },
+  { cmd = "verify", region = "texProofVerify", delim = "texProofCmdVerify", fg = "#3d2e42", bg = "#e1bee7" },
+  { cmd = "delete", region = "texProofDelete", delim = "texProofCmdDelete", fg = "#3a3a3a", bg = "#e0e0e0" },
+  { cmd = "sabhl", region = "texProofSabhl", delim = "texProofCmdSabhl", fg = "#2e3a48", bg = "#bbdefb" },
+}
+
+local author_todos = {
+  { cmd = "icgu", region = "texProofIcgU", delim = "texProofCmdIcgU", fg = "#4a452e", bg = "#fff59d" },
+  { cmd = "mpb", region = "texProofMpb", delim = "texProofCmdMpb", fg = "#404040", bg = "#eeeeee" },
+  { cmd = "fo", region = "texProofFo", delim = "texProofCmdFo", fg = "#3d422e", bg = "#e6ee9c" },
+  { cmd = "sab", region = "texProofSab", delim = "texProofCmdSab", fg = "#2e4248", bg = "#b2ebf2" },
+  { cmd = "fb", region = "texProofFb", delim = "texProofCmdFb", fg = "#2e4230", bg = "#c8e6c9" },
+}
+
+local function apply_proofreading_highlights()
+  local function set_hl(name, fg, bg)
+    pcall(vim.api.nvim_set_hl, 0, name, { fg = fg, bg = bg, bold = false })
+  end
+  for _, item in ipairs(proofreading_cmds) do
+    set_hl(item.region, item.fg, item.bg)
+    set_hl(item.delim, item.fg, item.bg)
+  end
+  for _, item in ipairs(author_todos) do
+    set_hl(item.region, item.fg, item.bg)
+    set_hl(item.delim, item.fg, item.bg)
+  end
+end
+
+local function add_proofreading_syntax()
+  if vim.bo.filetype ~= "tex" then
+    return
+  end
+  apply_proofreading_highlights()
+  for _, item in ipairs(proofreading_cmds) do
+    pcall(vim.cmd, "syntax clear " .. item.region)
+    pcall(vim.cmd, "syntax clear " .. item.delim)
+    pcall(vim.cmd, string.format(proof_region_tpl, item.region, item.delim, item.cmd, proof_cmd_skip))
+  end
+  for _, item in ipairs(author_todos) do
+    pcall(vim.cmd, "syntax clear " .. item.region)
+    pcall(vim.cmd, "syntax clear " .. item.delim)
+    pcall(vim.cmd, string.format(proof_region_tpl, item.region, item.delim, item.cmd, proof_cmd_skip))
+  end
+end
+
+local vimtex_proof_group = vim.api.nvim_create_augroup("VimtexProofreadingSyntax", { clear = true })
+vim.api.nvim_create_autocmd({ "FileType", "Syntax" }, {
+  group = vimtex_proof_group,
+  pattern = "tex",
+  desc = "Colourise proofreading todo macros in TeX buffers",
+  callback = function()
+    add_proofreading_syntax()
+    vim.defer_fn(add_proofreading_syntax, 100)
+  end,
+})
+vim.api.nvim_create_autocmd("User", {
+  group = vimtex_proof_group,
+  pattern = "VimtexEventInitPost",
+  desc = "Re-apply proofreading syntax after VimTeX init",
+  callback = function()
+    vim.defer_fn(add_proofreading_syntax, 10)
+  end,
+})
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = vimtex_proof_group,
+  desc = "Re-apply proofreading todo colours after theme change",
+  callback = function()
+    vim.defer_fn(apply_proofreading_highlights, 50)
+  end,
+})
+vim.api.nvim_create_user_command("VimTexProofreadingSyntax", add_proofreading_syntax, {
+  desc = "Re-apply proofreading todo syntax highlighting",
+})
+
 -- Raise Ghostty after Skim inverse search so the cursor jump is visible behind Skim.
 if is_macos then
 	local vimtex_inverse_focus_group = vim.api.nvim_create_augroup("VimtexInverseSearchFocus", { clear = true })
