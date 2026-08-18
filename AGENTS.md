@@ -623,7 +623,7 @@ If you encounter patterns not covered here or need clarification:
 
 ---
 
-**Last Updated**: 2026-08-13
+**Last Updated**: 2026-08-18
 **Maintained By**: Configuration maintainers
 
 ---
@@ -639,7 +639,7 @@ If you encounter patterns not covered here or need clarification:
 - Prefer cursor/popup media peeks over inline embeds so previews do not shift lines, flicker, or loop on refresh.
 - Media/URL peeks: dismiss with Esc; open externally with Enter (avoid `o` / `Ctrl-o` clashes with Vim navigation); favour wide readable popups (≈70% window width, content-centred, height fits image; PDFs fit page width with multipage scroll).
 - For website peeks, keep strong Open Graph images when they work; when OG/icons are missing, use a Microlink **landscape mobile** viewport screenshot (`isMobile` + `isLandscape`), not a cropped desktop thumbnail.
-- Prefer a minimal lualine statusline: no LSP status; keep filetype and conditional indicators only when genuinely useful (macro recording, visual selection size with units, search count, spell language).
+- Prefer a minimal lualine statusline: no LSP status; keep filetype and separate conditional indicators (macro recording, visual selection size with units and word count, search count, spell language); keep original `┃` / powerline separators — do not merge extras into one segment.
 - Show spell language as flag emoji (🇬🇧 for `en_gb`, 🇫🇷 for `fr`), not EN/FR text.
 - Disable native `showmode`, `showcmd`, and `shortmess` `S` so lualine owns mode, selection, and search display without duplicate echo below the bar.
 
@@ -653,7 +653,7 @@ If you encounter patterns not covered here or need clarification:
 - Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
 - Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
 - VitePress docs live under `docs/`; `.cursor/` and `.vscode/` are gitignored in this repo.
-- Markdown/Obsidian media peeks use image.nvim plus `vim-ui-img` helpers (`<leader>Ki` / `Kx` / `Ko`): raster embeds, PDF pages via pdftoppm (cached ~24h), and HTTP(S) link peeks (OG image or page screenshot).
+- Markdown/Obsidian media peeks use image.nvim plus `vim-ui-img` helpers (`<leader>Ki` / `Kx` / `Ko`): raster embeds, PDF pages via pdftoppm (cached ~24h), and HTTP(S) link peeks (OG image or page screenshot). `image.nvim` is a Kitty backend only; stock document integrations are disabled in `lua/plugins/image-nvim.lua` (themed cursor peek handles previews).
 - Startup cache hygiene (`core.cache-hygiene`) prunes undofiles older than 90 days, truncates oversized LSP logs, and removes leftover `startup.log`; media caches live under `~/.cache/nvim/vim-ui-img/`.
 - `BufWritePre` in `config.lua` enforces two empty lines at EOF on save.
-- `image.nvim` is a Kitty backend only; stock document integrations are disabled in `lua/plugins/image-nvim.lua` (themed cursor peek handles previews).
+- Custom lualine text must be `stl_escape`d so `%` is not parsed as a statusline format item; visual word count uses `vim.fn.wordcount().visual_words`, not `substitute(..., "gn")`.
