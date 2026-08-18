@@ -13,7 +13,7 @@
       "src": "https://github.com/rafi/awesome-vim-colorschemes"
     },
     "blink.cmp": {
-      "rev": "8ca29c2eb34f5ce4770bffc0d62e6f636a4e8526",
+      "rev": "e116ff9c5c1c2ed6bcdb2e0a6e547099876a8116",
       "src": "https://github.com/Saghen/blink.cmp"
     },
     "blink.lib": {
@@ -41,7 +41,7 @@
       "src": "https://github.com/projekt0n/github-nvim-theme"
     },
     "gitsigns.nvim": {
-      "rev": "31d6fb2d618bca1482b9f274751ead5f03461408",
+      "rev": "5be654f2232c10ddcad19c1607a67b6b4b78fc29",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "gruvbox.nvim": {
@@ -65,7 +65,7 @@
       "src": "https://github.com/iamcco/markdown-preview.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "67029ccdac1ef8941e13b826417bc0ffac24cc86",
+      "rev": "9d28935aa95fa6c1dc7c4d6747f101a72a8a4bec",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -73,7 +73,7 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "629bf6792187e11b4829411c1648f86f28df3963",
+      "rev": "e58ad4b0c9e9376096b9704f98fc00d4c9448870",
       "src": "https://github.com/echasnovski/mini.nvim"
     },
     "nord-vim": {
@@ -81,7 +81,7 @@
       "src": "https://github.com/arcticicestudio/nord-vim"
     },
     "nvim-lspconfig": {
-      "rev": "43ed3797b266e1ee8d222e491379ad471c9d3146",
+      "rev": "fbaef6156f9ad65790931ab543ab1dfec57bbec7",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
@@ -89,7 +89,7 @@
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {
-      "rev": "c9f9ed6c1892f629ea399f4ee7905f2686fa13f2",
+      "rev": "074aa4422bf029908338e855d0c0f71470a971bb",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-web-devicons": {
@@ -137,7 +137,7 @@
       "src": "https://github.com/nvim-telescope/telescope-ui-select.nvim"
     },
     "telescope.nvim": {
-      "rev": "427b576c16792edad01a92b89721d923c19ad60f",
+      "rev": "40aedd8a68c78a656a10a8d62d80c54af59420fb",
       "src": "https://github.com/nvim-telescope/telescope.nvim"
     },
     "toggleterm.nvim": {
@@ -157,7 +157,7 @@
       "src": "https://github.com/chomosuke/typst-preview.nvim"
     },
     "vimtex": {
-      "rev": "a5568d902cc20a76bb8ef70743f0157ec2e79ded",
+      "rev": "b652447a39eeb180ea103d6b39efe84e7cf74117",
       "src": "https://github.com/lervag/vimtex"
     },
     "which-key.nvim": {

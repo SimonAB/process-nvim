@@ -227,11 +227,13 @@ vim.api.nvim_create_autocmd("User", {
 -- so their content gets texStyleStrike / texStyleHl; theme-manager sets gui (OpenType-friendly)
 local function add_tex_style_syntax()
   if vim.bo.filetype ~= "tex" then return end
-  vim.cmd([[
-    syntax region texStyleStrike matchgroup=texDelim start="\\st\s*{" skip="\%#=1\\\\[{}]" end="}" contains=TOP,@NoSpell
-    syntax region texStyleStrike matchgroup=texDelim start="\\sout\s*{" skip="\%#=1\\\\[{}]" end="}" contains=TOP,@NoSpell
-    syntax region texStyleHl matchgroup=texDelim start="\\hl\s*{" skip="\%#=1\\\\[{}]" end="}" contains=TOP,@NoSpell
-  ]])
+  pcall(vim.cmd, "syntax clear texStyleHl")
+  pcall(vim.cmd, [[syntax region texStyleStrike matchgroup=texDelim start="\\st\s*{" skip="\%#=1\\\\[{}]" end="}" contains=TOP,@NoSpell]])
+  pcall(vim.cmd, [[syntax region texStyleStrike matchgroup=texDelim start="\\sout\s*{" skip="\%#=1\\\\[{}]" end="}" contains=TOP,@NoSpell]])
+  pcall(vim.cmd, [[syntax region texStyleHl matchgroup=texStyleHlDelim start="\\hl\s*{" skip="\%#=1\\\\[{}]" end="}" contains=TOP,@NoSpell]])
+  pcall(function()
+    require("core.theme-manager").apply_tex_style_highlights()
+  end)
 end
 local vimtex_style_group = vim.api.nvim_create_augroup("VimtexStyleSyntax", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {

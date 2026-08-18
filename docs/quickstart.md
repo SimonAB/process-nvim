@@ -302,7 +302,7 @@ This config expects **lua-ul** with soul-compatible command names (LuaLaTeX/Open
 \usepackage[soul]{lua-ul}      % provides \ul, \uline, \st, \sout, \hl (same names as soul)
 ```
 
-Do **not** load `soul` or `ulem`; lua-ul with the `[soul]` option gives you the same `\ul`, `\st`, `\hl` (and `\uline`, `\sout`) with better kerning and OpenType support. The editor will style these commands in the buffer and TOC.
+Do **not** load `soul` or `ulem`; lua-ul with the `[soul]` option gives you the same `\ul`, `\st`, `\hl` (and `\uline`, `\sout`) with better kerning and OpenType support. In the buffer, `\st`/`\sout` use strikethrough and `\hl` uses a soul-style yellow background on both the command and its argument. The TOC also styles these commands.
 
 ## Obsidian Integration
 

@@ -418,20 +418,17 @@ function ThemeManager.apply_link_highlights()
 end
 
 ---Apply LaTeX lua-ul [soul] style highlights (\st, \hl) for OpenType-friendly display.
----Strikethrough uses gui=strikethrough; highlight uses underline + optional bg (like link styling).
+---Strikethrough uses gui=strikethrough; highlight uses a yellow background (soul default).
 function ThemeManager.apply_tex_style_highlights()
   -- Strikethrough: \st{}, \sout{} — visible in all fonts
   pcall(vim.api.nvim_set_hl, 0, "texStyleStrike", {
     strikethrough = true,
   })
 
-  -- Highlight: \hl{} — underline for OpenType visibility; bg from Search if available
-  local hl_opts = { underline = true }
-  local ok, search_hl = pcall(vim.api.nvim_get_hl, 0, { name = "Search", link = false })
-  if ok and search_hl and search_hl.bg then
-    hl_opts.bg = search_hl.bg
-  end
-  pcall(vim.api.nvim_set_hl, 0, "texStyleHl", hl_opts)
+  -- Highlight: \hl{} — soul-style yellow background, including the command name
+  local hl_yellow = { fg = "#3d3a14", bg = "#fff176", underline = false }
+  pcall(vim.api.nvim_set_hl, 0, "texStyleHl", hl_yellow)
+  pcall(vim.api.nvim_set_hl, 0, "texStyleHlDelim", hl_yellow)
 end
 
 ---Apply the configured UI opacity across Neovim.

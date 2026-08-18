@@ -240,6 +240,7 @@ Install language servers via Mason:
 - Julia REPL: `--threads=auto` enabled
 - File formatting: Two empty lines at end of file on save
 - Statusline: no LSP; conditional macro, visual selection (with word count), search count, and spell flags
+- LaTeX: `\hl{}` shown with soul-style yellow in the buffer
 - Obsidian: `<leader>Op` pastes image, adds two newlines
 
 See [CHANGELOG](docs/CHANGELOG.md) for complete version history.
