@@ -63,21 +63,12 @@ function ThemeManager.detect_system_theme()
 		return system_theme_cache
 	end
 
-	local ok, result = pcall(vim.fn.system, { "defaults", "read", "-g", "AppleInterfaceStyle" })
-	if ok and type(result) == "string" then
-		local trimmed = vim.trim(result)
-		-- Light appearance: the global key is absent, so `defaults read` often yields empty stdout.
-		-- Treating empty as light avoids wrongly forcing dark after a dark→light switch.
-		if trimmed == "" or not trimmed:match("Dark") then
-			system_theme_cache = "light"
-		else
-			system_theme_cache = "dark"
-		end
-		last_detection_time = current_time
-		return system_theme_cache
+	local ok_platform, Platform = pcall(require, "core.platform")
+	if ok_platform and Platform and Platform.detect_system_theme then
+		system_theme_cache = Platform.detect_system_theme()
+	else
+		system_theme_cache = "dark"
 	end
-
-	system_theme_cache = "dark" -- fallback when `defaults` cannot run
 	last_detection_time = current_time
 	return system_theme_cache
 end

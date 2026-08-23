@@ -107,7 +107,7 @@ local function obsidian_operation(operation_name)
 end
 
 ---Paste an image into the Obsidian vault and insert a link, then add two blank lines.
----Prefers obsidian.nvim's own paste command/utilities; falls back to pngpaste on macOS.
+---Prefers obsidian.nvim's own paste command/utilities; falls back to platform clipboard tools.
 local function paste_obsidian_image()
 	local used_obsidian = false
 
@@ -155,11 +155,19 @@ local function paste_obsidian_image()
 	local filename = os.date("%Y%m%d-%H%M%S") .. ".png"
 	local fullpath = attachments_dir .. "/" .. filename
 
-	local cmd = string.format('pngpaste "%s"', fullpath)
+	local Platform = require("core.platform")
+	local cmd = Platform.clipboard_image_paste_cmd(fullpath)
+	if not cmd then
+		vim.notify(
+			"Failed to paste image: no platform clipboard image tool available (pngpaste / wl-paste / xclip)",
+			vim.log.levels.ERROR
+		)
+		return
+	end
 	vim.fn.system(cmd)
 	if vim.v.shell_error ~= 0 then
 		vim.notify(
-			"Failed to paste image: pngpaste not available or clipboard is not an image",
+			"Failed to paste image: clipboard tool failed or clipboard is not an image",
 			vim.log.levels.ERROR
 		)
 		return

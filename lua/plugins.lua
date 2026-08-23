@@ -1,6 +1,8 @@
 -- Plugin Management with vim.pack (Neovim 0.13-dev / 0.12+)
 -- Purpose: Declare plugins for vim.pack and register build hooks
 
+local Platform = require("core.platform")
+
 local plugins = {
 	-- Core functionality
 	{ src = "https://github.com/nvim-lua/plenary.nvim", name = "plenary.nvim" },
@@ -27,7 +29,7 @@ local plugins = {
 		name = "telescope-fzf-native.nvim",
 		data = {
 			-- Prevent Conda/SDK toolchain leakage (common on macOS) from breaking link step.
-			build = 'make clean && env -i PATH="/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin" make CC=/usr/bin/clang CFLAGS="-Wall -fpic -std=gnu99"',
+			build = Platform.telescope_fzf_native_build(),
 		},
 	},
 	{ src = "https://github.com/nvim-telescope/telescope-frecency.nvim", name = "telescope-frecency.nvim" },
@@ -96,7 +98,7 @@ local function run_build_hook(ev)
 		return
 	end
 
-	local shell = "/opt/homebrew/bin/zsh"
+	local shell = Platform.shell()
 	local result = vim.system({ shell, "-lc", cmd }, { cwd = cwd, text = true }):wait()
 	if result.code ~= 0 then
 		vim.notify(

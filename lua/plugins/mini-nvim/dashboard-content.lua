@@ -197,7 +197,7 @@ function M.create_forge_items()
 	return {
 		{
 			name = keys[1] .. ".  Inbox",
-			action = "edit " .. vim.fn.fnameescape(vim.fn.expand("~/Documents/Forge/inbox.md")),
+			action = "edit " .. vim.fn.fnameescape(require("core.platform").forge_dir() .. "/inbox.md"),
 			section = "Forge",
 		},
 		{

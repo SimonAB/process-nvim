@@ -1,9 +1,11 @@
 -- Configuration for Forge — local kanban project manager (Finder tags)
 -- Provides keymaps, Telescope pickers, and terminal integration
 
+local Platform = require("core.platform")
+
 local M = {}
 
-local FORGE_DIR = vim.fn.expand("~/Documents/Forge")
+local FORGE_DIR = Platform.forge_dir()
 local SETUP_SCRIPT = FORGE_DIR .. "/setup.sh"
 
 --- Project root: git root from current buffer/cwd, or directory of current file, or cwd.
@@ -30,10 +32,10 @@ function M.is_available()
 	return vim.fn.executable("forge") == 1
 end
 
---- Check whether Forge.app is installed.
+--- Check whether Forge.app is installed (macOS only).
 ---@return boolean
 function M.is_app_installed()
-	return vim.fn.isdirectory("/Applications/Forge.app") == 1
+	return Platform.is_macos() and vim.fn.isdirectory("/Applications/Forge.app") == 1
 end
 
 --- Check whether setup.sh exists in the Forge directory.
@@ -206,7 +208,7 @@ function M.run_setup()
 	end
 
 	local term = Terminal:new({
-		cmd = "/opt/homebrew/bin/zsh " .. vim.fn.shellescape(SETUP_SCRIPT),
+		cmd = Platform.shell() .. " " .. vim.fn.shellescape(SETUP_SCRIPT),
 		hidden = true,
 		direction = "float",
 		close_on_exit = false,
@@ -280,7 +282,7 @@ function M.setup_commands()
 
 	vim.api.nvim_create_user_command("ForgeSetup", function()
 		M.run_setup()
-	end, { desc = "Forge: build and install Forge on this Mac" })
+	end, { desc = "Forge: build and install Forge on this machine" })
 end
 
 -- ===========================================================================

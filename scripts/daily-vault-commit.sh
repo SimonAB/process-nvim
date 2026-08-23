@@ -1,20 +1,21 @@
-#!/opt/homebrew/bin/zsh
+#!/usr/bin/env zsh
 # Daily auto-commit for the Obsidian vault git repository.
 # Reduces gitsigns / git status overhead by keeping the working tree clean.
 #
 # Sync:
 #   - This script is in dotfiles (config/nvim/scripts/) and syncs with your nvim/dotfiles repo.
-#   - The launchd job is per machine: run `install` once on each Mac after dotfiles sync.
+#   - Scheduling is per machine: run `install` once after dotfiles sync (launchd on macOS,
+#     systemd --user on Linux).
 #
 # Multi-device:
 #   - Pulls/rebases before commit and pushes when a git remote exists.
 #   - Skips if the tree is already clean (including after sync).
 #   - Amends today's existing daily snapshot instead of creating a duplicate commit.
-#   - Staggered run time per hostname when installing the launchd job.
+#   - Staggered run time per hostname when installing a schedule.
 #
 # Usage:
 #   ./scripts/daily-vault-commit.sh          # run once now
-#   ./scripts/daily-vault-commit.sh install  # schedule daily via launchd (macOS)
+#   ./scripts/daily-vault-commit.sh install  # schedule daily (launchd / systemd)
 #   ./scripts/daily-vault-commit.sh uninstall
 #
 # Environment:
@@ -27,16 +28,63 @@
 set -euo pipefail
 
 readonly LABEL="com.simonab.daily-vault-commit"
-readonly LOG_FILE="${HOME}/Library/Logs/daily-vault-commit.log"
+readonly SYSTEMD_UNIT="daily-vault-commit"
 readonly SCRIPT_PATH="${0:A}"
-readonly PLIST_PATH="${HOME}/Library/LaunchAgents/${LABEL}.plist"
+readonly OS_NAME="$(uname -s)"
+
+if [[ "${OS_NAME}" == "Darwin" ]]; then
+	readonly LOG_FILE="${HOME}/Library/Logs/daily-vault-commit.log"
+	readonly PLIST_PATH="${HOME}/Library/LaunchAgents/${LABEL}.plist"
+else
+	readonly LOG_FILE="${XDG_STATE_HOME:-${HOME}/.local/state}/daily-vault-commit.log"
+	readonly SYSTEMD_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
+	readonly TIMER_PATH="${SYSTEMD_DIR}/${SYSTEMD_UNIT}.timer"
+	readonly SERVICE_PATH="${SYSTEMD_DIR}/${SYSTEMD_UNIT}.service"
+fi
+
+# Prefer Homebrew zsh on macOS when present; otherwise PATH zsh.
+resolve_zsh() {
+	if [[ "${OS_NAME}" == "Darwin" ]]; then
+		for candidate in /opt/homebrew/bin/zsh /usr/local/bin/zsh; do
+			if [[ -x "${candidate}" ]]; then
+				print -r -- "${candidate}"
+				return
+			fi
+		done
+	fi
+	command -v zsh
+}
 
 resolve_vault_path() {
 	if [[ -n "${OBSIDIAN_VAULT_PATH:-}" ]]; then
 		print -r -- "${OBSIDIAN_VAULT_PATH:A}"
 		return
 	fi
-	print -r -- "${HOME}/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook"
+
+	local candidates=()
+	if [[ "${OS_NAME}" == "Darwin" ]]; then
+		candidates=(
+			"${HOME}/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook"
+		)
+	else
+		candidates=(
+			"${HOME}/Documents/Obsidian/Notebook"
+			"${HOME}/Documents/Notebook"
+			"${HOME}/Obsidian/Notebook"
+			"${HOME}/.local/share/obsidian/Notebook"
+			"${HOME}/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook"
+		)
+	fi
+
+	local path
+	for path in "${candidates[@]}"; do
+		if [[ -d "${path}" ]]; then
+			print -r -- "${path:A}"
+			return
+		fi
+	done
+
+	print -r -- "${candidates[1]:A}"
 }
 
 daily_snapshot_message() {
@@ -102,7 +150,7 @@ sync_with_remote() {
 install_schedule_time() {
 	local base_hour="${DAILY_VAULT_COMMIT_HOUR:-18}"
 	local base_minute="${DAILY_VAULT_COMMIT_MINUTE:-0}"
-	# Spread Macs by hostname so two machines rarely commit at the same instant.
+	# Spread hosts by hostname so two machines rarely commit at the same instant.
 	local host_offset=$(( $(cksum <<< "$(hostname)" | cut -d' ' -f1) % 45 ))
 	local minute=$(( base_minute + host_offset ))
 	local hour=$(( base_hour ))
@@ -169,10 +217,11 @@ run_commit() {
 }
 
 write_plist() {
-	local schedule hour minute
+	local schedule hour minute zsh_bin
 	schedule="$(install_schedule_time)"
 	hour="${schedule%% *}"
 	minute="${schedule##* }"
+	zsh_bin="$(resolve_zsh)"
 
 	mkdir -p "${HOME}/Library/LaunchAgents"
 	cat > "${PLIST_PATH}" <<EOF
@@ -184,7 +233,7 @@ write_plist() {
 	<string>${LABEL}</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/opt/homebrew/bin/zsh</string>
+		<string>${zsh_bin}</string>
 		<string>${SCRIPT_PATH}</string>
 	</array>
 	<key>StartCalendarInterval</key>
@@ -226,6 +275,66 @@ uninstall_launchd() {
 	fi
 }
 
+write_systemd_units() {
+	local schedule hour minute zsh_bin
+	schedule="$(install_schedule_time)"
+	hour="${schedule%% *}"
+	minute="${schedule##* }"
+	zsh_bin="$(resolve_zsh)"
+
+	mkdir -p "${SYSTEMD_DIR}"
+	cat > "${SERVICE_PATH}" <<EOF
+[Unit]
+Description=Daily Obsidian vault git snapshot
+
+[Service]
+Type=oneshot
+ExecStart=${zsh_bin} ${SCRIPT_PATH}
+EOF
+
+	cat > "${TIMER_PATH}" <<EOF
+[Unit]
+Description=Daily Obsidian vault git snapshot timer
+
+[Timer]
+OnCalendar=*-*-* ${hour}:$(printf '%02d' "${minute}"):00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+}
+
+install_systemd() {
+	local schedule hour minute
+	if ! command -v systemctl >/dev/null 2>&1; then
+		print -r -- "systemctl not available; cannot install a user timer." >&2
+		exit 1
+	fi
+
+	write_systemd_units
+	schedule="$(install_schedule_time)"
+	hour="${schedule%% *}"
+	minute="${schedule##* }"
+	systemctl --user daemon-reload
+	systemctl --user enable --now "${SYSTEMD_UNIT}.timer"
+	log "installed: daily run at ${hour}:$(printf '%02d' "${minute}") on $(hostname)"
+	print -r -- "Timer:    ${TIMER_PATH}"
+	print -r -- "Service:  ${SERVICE_PATH}"
+	print -r -- "Log file: ${LOG_FILE}"
+}
+
+uninstall_systemd() {
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl --user disable --now "${SYSTEMD_UNIT}.timer" 2>/dev/null || true
+	fi
+	rm -f "${TIMER_PATH}" "${SERVICE_PATH}"
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl --user daemon-reload 2>/dev/null || true
+	fi
+	log "uninstalled systemd timer"
+}
+
 case "${1:-run}" in
 	run)
 		mkdir -p "$(dirname "${LOG_FILE}")"
@@ -233,10 +342,18 @@ case "${1:-run}" in
 		;;
 	install)
 		mkdir -p "$(dirname "${LOG_FILE}")"
-		install_launchd
+		if [[ "${OS_NAME}" == "Darwin" ]]; then
+			install_launchd
+		else
+			install_systemd
+		fi
 		;;
 	uninstall)
-		uninstall_launchd
+		if [[ "${OS_NAME}" == "Darwin" ]]; then
+			uninstall_launchd
+		else
+			uninstall_systemd
+		fi
 		;;
 	*)
 		print -r -- "Usage: $0 [run|install|uninstall]" >&2

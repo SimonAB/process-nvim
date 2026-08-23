@@ -28,15 +28,9 @@ date_modified: %s
 end
 
 ---Resolve the Obsidian vault path.
----Prefers `OBSIDIAN_VAULT_PATH` if set, otherwise defaults to the common iCloud location.
 ---@return string
 local function get_obsidian_vault_path()
-	local env_path = vim.env.OBSIDIAN_VAULT_PATH
-	if env_path and env_path ~= "" then
-		return env_path
-	end
-
-	return vim.fn.expand("~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook")
+	return require("core.platform").obsidian_vault_path()
 end
 
 obsidian.setup({

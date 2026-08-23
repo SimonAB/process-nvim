@@ -77,11 +77,7 @@ end
 
 ---@return string
 local function get_obsidian_vault_path()
-	local env_path = vim.env.OBSIDIAN_VAULT_PATH
-	if env_path and env_path ~= "" then
-		return vim.fn.expand(env_path)
-	end
-	return vim.fn.expand("~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook")
+	return require("core.platform").obsidian_vault_path()
 end
 
 ---Resolve a fragment to an existing image/PDF path.
@@ -436,15 +432,11 @@ function M.open_external(path)
 		return
 	end
 
-	if is_pdf_path(resolved) and vim.fn.executable("open") == 1 then
-		if vim.fn.isdirectory("/Applications/Skim.app") == 1 then
-			vim.fn.jobstart({ "open", "-a", "Skim", resolved }, { detach = true })
-			vim.notify("Opened in Skim: " .. vim.fn.fnamemodify(resolved, ":t"), vim.log.levels.INFO)
+	if is_pdf_path(resolved) then
+		if require("core.platform").open_pdf(resolved) then
+			vim.notify("Opened: " .. vim.fn.fnamemodify(resolved, ":t"), vim.log.levels.INFO)
 			return
 		end
-		vim.fn.jobstart({ "open", resolved }, { detach = true })
-		vim.notify("Opened: " .. vim.fn.fnamemodify(resolved, ":t"), vim.log.levels.INFO)
-		return
 	end
 
 	if vim.ui and type(vim.ui.open) == "function" then
