@@ -509,10 +509,89 @@ end, { desc = "Refresh image.nvim cursor preview" })
 
 vim.api.nvim_create_user_command("AttachmentOpen", function(opts)
 	local arg = opts.args
-	if arg == "" then
+	if arg == nil or arg == "" then
 		arg = nil
 	end
 	M.open_external(arg)
 end, { nargs = "?", complete = "file", desc = "Open image/PDF attachment in system viewer" })
+
+---Derive alt/descriptor text from a markdown link destination.
+---Skips remote URLs; uses the basename (matches obsidian.nvim paste + vault style).
+---@param dest string
+---@return string|nil
+local function descriptor_from_dest(dest)
+	dest = M.clean_path_fragment(dest)
+	if dest:match("^%a+://") then
+		return nil
+	end
+	local basename = vim.fn.fnamemodify(dest, ":t")
+	if basename == "" or basename == "." then
+		return nil
+	end
+	return basename
+end
+
+---Fill empty image alt text, e.g. `![](<../attachments/foo.png>)` → `![foo.png](<../attachments/foo.png>)`.
+---Skips fenced code blocks. Returns updated text and the number of replacements.
+---@param text string
+---@return string new_text, integer changes
+function M.fill_empty_attachment_descriptors(text)
+	local in_fence = false
+	local out_lines = {}
+	local changes = 0
+
+	for _, line in ipairs(vim.split(text, "\n", { plain = true })) do
+		if line:match("^```") then
+			in_fence = not in_fence
+			out_lines[#out_lines + 1] = line
+		elseif in_fence then
+			out_lines[#out_lines + 1] = line
+		else
+			local new_line = line:gsub("!%[%]%(([^)]*)%)", function(raw_dest)
+				local dest = vim.trim(raw_dest)
+				local angle_inner = dest:match("^<(.*)>$")
+				if angle_inner then
+					dest = angle_inner
+				end
+				local descriptor = descriptor_from_dest(dest)
+				if not descriptor then
+					return "![](" .. raw_dest .. ")"
+				end
+				changes = changes + 1
+				if angle_inner or raw_dest:match("^%s*<") then
+					return "![" .. descriptor .. "](<" .. dest .. ">)"
+				end
+				return "![" .. descriptor .. "](" .. raw_dest .. ")"
+			end)
+			out_lines[#out_lines + 1] = new_line
+		end
+	end
+
+	return table.concat(out_lines, "\n"), changes
+end
+
+local attachment_descriptor_augroup = vim.api.nvim_create_augroup("MarkdownAttachmentDescriptors", { clear = true })
+vim.api.nvim_create_autocmd("BufWritePre", {
+	group = attachment_descriptor_augroup,
+	pattern = "*.md",
+	desc = "Fill empty attachment image alt text on save",
+	callback = function(args)
+		local bufnr = args.buf
+		if not vim.bo[bufnr].modifiable then
+			return
+		end
+
+		local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+		local content = table.concat(lines, "\n")
+		local new_content, changes = M.fill_empty_attachment_descriptors(content)
+		if changes == 0 or new_content == content then
+			return
+		end
+
+		local view = vim.fn.winsaveview()
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(new_content, "\n", { plain = true }))
+		vim.fn.winrestview(view)
+	end,
+})
 
 return M
