@@ -62,17 +62,20 @@ resolve_vault_path() {
 	fi
 
 	local candidates=()
+	candidates=(
+		"${HOME}/Databases/Notebook"
+		"${HOME}/Databases"
+	)
 	if [[ "${OS_NAME}" == "Darwin" ]]; then
-		candidates=(
+		candidates+=(
 			"${HOME}/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook"
 		)
 	else
-		candidates=(
-			"${HOME}/Documents/Obsidian/Notebook"
+		candidates+=(
 			"${HOME}/Documents/Notebook"
+			"${HOME}/Documents/Obsidian/Notebook"
 			"${HOME}/Obsidian/Notebook"
 			"${HOME}/.local/share/obsidian/Notebook"
-			"${HOME}/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook"
 		)
 	fi
 

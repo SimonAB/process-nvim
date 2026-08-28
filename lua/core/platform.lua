@@ -114,7 +114,8 @@ local function first_existing_dir(candidates)
 end
 
 ---Resolve the Obsidian vault path for this machine.
----Prefers `OBSIDIAN_VAULT_PATH`, then known macOS iCloud and Linux locations.
+---Prefers `OBSIDIAN_VAULT_PATH`, then `~/Databases/Notebook` on all platforms,
+---with legacy fallbacks (iCloud on macOS, old Linux locations).
 ---@return string
 function M.obsidian_vault_path()
 	local env_path = vim.env.OBSIDIAN_VAULT_PATH
@@ -122,20 +123,21 @@ function M.obsidian_vault_path()
 		return vim.fn.expand(env_path)
 	end
 
-	local candidates = {}
+	local candidates = {
+		"~/Databases/Notebook",
+		"~/Databases",
+	}
 	if M.is_macos() then
-		candidates = {
+		vim.list_extend(candidates, {
 			"~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook",
-		}
+		})
 	else
-		candidates = {
-			"~/Documents/Obsidian/Notebook",
+		vim.list_extend(candidates, {
 			"~/Documents/Notebook",
+			"~/Documents/Obsidian/Notebook",
 			"~/Obsidian/Notebook",
 			"~/.local/share/obsidian/Notebook",
-			-- Optional iCloud mount (e.g. rclone) on Linux
-			"~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook",
-		}
+		})
 	end
 
 	local found = first_existing_dir(candidates)
@@ -152,6 +154,9 @@ function M.forge_dir()
 	local env_path = vim.env.FORGE_DIR
 	if env_path and env_path ~= "" then
 		return vim.fn.expand(env_path)
+	end
+	if M.is_macos() then
+		return vim.fn.expand("~/Documents/Forge")
 	end
 	return vim.fn.expand("~/Documents/Forge")
 end

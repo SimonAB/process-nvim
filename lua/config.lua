@@ -30,7 +30,9 @@ opt.linebreak = true -- Wrap at word boundaries
 opt.scrolloff = 8 -- Scroll offset
 opt.sidescrolloff = 8 -- Side scroll offset
 -- Keep the cursor vertically centred near EOF (Neovim 0.13+).
-opt.scrolloffpad = 1
+if vim.fn.has("nvim-0.13") == 1 then
+	opt.scrolloffpad = 1
+end
 opt.conceallevel = 2 -- Enable concealment for Obsidian.nvim and VimTex
 
 -- Lualine owns mode, selection size, and search count; avoid duplicate echo on the last line.
