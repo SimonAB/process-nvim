@@ -57,7 +57,7 @@
       "src": "https://github.com/JuliaEditorSupport/julia-vim"
     },
     "lualine.nvim": {
-      "rev": "221ce6b2d999187044529f49da6554a92f740a96",
+      "rev": "131a558e13f9f28b15cd235557150ccb23f89286",
       "src": "https://github.com/nvim-lualine/lualine.nvim"
     },
     "markdown-preview.nvim": {
@@ -73,7 +73,7 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "fb2bbae327f3c306f3c825031345b89dd176ce60",
+      "rev": "1098976ddda3cf00f50c1dda5eef10ccf463d9eb",
       "src": "https://github.com/echasnovski/mini.nvim"
     },
     "nord-vim": {
@@ -129,7 +129,7 @@
       "src": "https://github.com/nvim-telescope/telescope-frecency.nvim"
     },
     "telescope-fzf-native.nvim": {
-      "rev": "b25b749b9db64d375d782094e2b9dce53ad53a40",
+      "rev": "6fea601bd2b694c6f2ae08a6c6fab14930c60e2c",
       "src": "https://github.com/nvim-telescope/telescope-fzf-native.nvim"
     },
     "telescope-ui-select.nvim": {

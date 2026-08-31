@@ -79,7 +79,7 @@ obsidian.setup({
 
     -- Templates
     templates = {
-        folder = "Templates",
+        folder = "templates",
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         -- Custom substitutions
