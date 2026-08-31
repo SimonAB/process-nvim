@@ -34,6 +34,8 @@ image.setup({
 	hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
 })
 
+local media_peek = require("plugins.vim-ui-img")
+
 local embed_popup = {
 	win = nil,
 	buf = nil,
@@ -291,6 +293,10 @@ show_embed_popup = function(preview_path, title, opts)
 		fit_width = fit_width,
 	})
 	local width, height = layout.frame_w, layout.frame_h
+	width = media_peek.clamp_cursor_peek_width(width, 20)
+	if not width then
+		return
+	end
 	local row = popup_row_for_height(height)
 
 	local buf = vim.api.nvim_create_buf(false, true)
@@ -416,6 +422,10 @@ local function swap_embed_image(preview_path, title, opts)
 		fit_width = opts.fit_width == true,
 	})
 	local width, height = layout.frame_w, layout.frame_h
+	width = media_peek.clamp_cursor_peek_width(width, 20)
+	if not width then
+		return false
+	end
 
 	vim.bo[buf].modifiable = true
 	local blanks = {}
@@ -532,6 +542,9 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 	group = embed_augroup,
 	desc = "Themed cursor peek for Markdown/wiki image and PDF embeds",
 	callback = function(args)
+		if vim.fn.mode() ~= "n" then
+			return
+		end
 		local ft = vim.bo[args.buf].filetype
 		if ft ~= "markdown" and ft ~= "quarto" and ft ~= "pandoc" then
 			return
@@ -544,7 +557,7 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 			return
 		end
 
-		local media = require("plugins.vim-ui-img")
+		local media = media_peek
 		local cleaned, page = media.clean_path_fragment(fragment)
 		local doc = vim.api.nvim_buf_get_name(args.buf)
 		local preview, source, resolved_page = media.resolve_preview_path(doc, fragment)
@@ -585,6 +598,17 @@ vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
 	group = embed_augroup,
 	callback = function()
 		embed_popup.dismissed_key = nil
+		clear_embed_popup()
+	end,
+})
+
+vim.api.nvim_create_autocmd("ModeChanged", {
+	group = embed_augroup,
+	desc = "Hide media peek when leaving normal mode",
+	callback = function()
+		if vim.v.event.new_mode == "n" then
+			return
+		end
 		clear_embed_popup()
 	end,
 })

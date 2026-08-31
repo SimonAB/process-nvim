@@ -19,6 +19,8 @@ local peek = {
 	timer = nil,
 }
 
+local media_peek = require("plugins.vim-ui-img")
+
 ---@return string
 local function cache_dir()
 	return vim.fn.stdpath("cache") .. "/vim-ui-img/web"
@@ -386,6 +388,9 @@ end
 ---@param meta table
 ---@param image_path string|nil
 local function show_peek(url, meta, image_path)
+	if vim.fn.mode() ~= "n" then
+		return
+	end
 	if peek.dismissed_url == url then
 		return
 	end
@@ -394,6 +399,10 @@ local function show_peek(url, meta, image_path)
 
 	local win_width = vim.api.nvim_win_get_width(0)
 	local width = math.max(36, math.min(72, math.floor(win_width * 0.55)))
+	width = media_peek.clamp_cursor_peek_width(width, 24)
+	if not width then
+		return
+	end
 	local host = meta.site or url:match("^https?://([^/]+)") or "link"
 	local lines = {}
 	if meta.title and meta.title ~= "" then
@@ -700,6 +709,9 @@ local function schedule_peek(url)
 				peek.timer:close()
 				peek.timer = nil
 			end
+			if vim.fn.mode() ~= "n" then
+				return
+			end
 			if peek.dismissed_url == url then
 				return
 			end
@@ -714,6 +726,9 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 	group = augroup,
 	desc = "Themed cursor peek for Markdown website links",
 	callback = function(args)
+		if vim.fn.mode() ~= "n" then
+			return
+		end
 		local ft = vim.bo[args.buf].filetype
 		if ft ~= "markdown" and ft ~= "quarto" and ft ~= "pandoc" then
 			return
@@ -739,6 +754,22 @@ vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
 	group = augroup,
 	callback = function()
 		peek.dismissed_url = nil
+		if peek.timer then
+			peek.timer:stop()
+			peek.timer:close()
+			peek.timer = nil
+		end
+		M.clear()
+	end,
+})
+
+vim.api.nvim_create_autocmd("ModeChanged", {
+	group = augroup,
+	desc = "Hide link peek when leaving normal mode",
+	callback = function()
+		if vim.v.event.new_mode == "n" then
+			return
+		end
 		if peek.timer then
 			peek.timer:stop()
 			peek.timer:close()
