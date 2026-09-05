@@ -637,7 +637,7 @@ If you encounter patterns not covered here or need clarification:
 - Prefer screenshot-driven iteration for float transparency; do not “improve” a working transparent look into opacity.
 - Finish feature work with docs/changelog updates when relevant; commit and push only when explicitly asked.
 - Prefer cursor/popup media peeks over inline embeds so previews do not shift lines, flicker, or loop on refresh.
-- Media/URL peeks: dismiss with Esc; open externally with Enter (avoid `o` / `Ctrl-o` clashes with Vim navigation); favour wide readable popups (≈70% window width, content-centred, height fits image; PDFs fit page width with multipage scroll).
+- Media/URL peeks: normal mode only (not visual modes — peeks must not cancel selections); dismiss with Esc; open externally with Enter (avoid `o` / `Ctrl-o` clashes with Vim navigation); favour wide readable popups (≈70% window width, content-centred, height fits image; PDFs fit page width with multipage scroll).
 - For website peeks, keep strong Open Graph images when they work; when OG/icons are missing, use a Microlink **landscape mobile** viewport screenshot (`isMobile` + `isLandscape`), not a cropped desktop thumbnail.
 - Prefer a minimal lualine statusline: no LSP status; keep filetype and separate conditional indicators (macro recording, visual selection size with units and word count, search count, spell language); keep original `┃` / powerline separators — do not merge extras into one segment.
 - Show spell language as flag emoji (🇬🇧 for `en_gb`, 🇫🇷 for `fr`), not EN/FR text.
@@ -649,7 +649,7 @@ If you encounter patterns not covered here or need clarification:
 - Flexoki colourscheme is loaded from the fork `SimonAB/flexoki-neovim` (not stock kepano), including transparent editor/float options.
 - CodeCompanion ACP is wired for Cursor and local Ollama; AI keymaps live under the `<leader>A` which-key group.
 - Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL.
-- LaTeX Skim inverse/forward search lives under `scripts/` (Ghostty-aware); inverse search should auto-raise the terminal and works with both Herdr and tmux.
+- LaTeX Skim inverse/forward search lives under `scripts/` (Ghostty-aware); inverse search should auto-raise the terminal and works with both Herdr and tmux. VimTeX proofreading macros (`\add{}`, `\verify{}`, `\edit{}`, `\clarify{}`, `\checkref{}`, etc.) are colourised in `lua/plugins/vimtex.lua`; keep `texSpecialChar` in `texRefGroup` so `\%` inside `\cite[...]` does not leak and break later todo regions, and allow one level of nested braces in those args.
 - Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
 - Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
 - VitePress docs live under `docs/`; `.cursor/` and `.vscode/` are gitignored in this repo.

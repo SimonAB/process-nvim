@@ -18,9 +18,12 @@ vim.g.vimtex_toc_todo_labels = {
 -- Custom TOC matchers for proofreading commands (todonotes-style macros).
 -- Must be defined in Vimscript so each matcher has get_entry() returning type 'todo',
 -- so entries appear in the TOC todo layer instead of mixed with content/headings.
+-- Brace pattern allows one nesting level (e.g. \emph{...} inside the note).
 vim.cmd([[
+let s:proof_brace = '\{%([^{}]|\{[^{}]*\})*\}'
 function! VimtexProofTocGetEntry(context) abort dict
-  let content = matchstr(a:context.line, '\v\\' . self.cmd . '\s*\{\zs[^}]*\ze\}')
+  let content = matchstr(a:context.line,
+    \ '\v\\' . self.cmd . '\s*\{\zs%([^{}]|\{[^{}]*\})*\ze\}')
   let title = content !=# '' ? self.title . ': ' . content : self.title
   return {
     \ 'title': title,
@@ -33,13 +36,13 @@ function! VimtexProofTocGetEntry(context) abort dict
     \}
 endfunction
 let g:vimtex_toc_custom_matchers = [
-  \ {'name': 'proof_tighten', 'title': 'Tighten', 'cmd': 'tighten', 'prefilter_cmds': ['tighten'], 're': '\v\\tighten\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
-  \ {'name': 'proof_edit', 'title': 'Edit', 'cmd': 'edit', 'prefilter_cmds': ['edit'], 're': '\v\\edit\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
-  \ {'name': 'proof_add', 'title': 'Add', 'cmd': 'add', 'prefilter_cmds': ['add'], 're': '\v\\add\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
-  \ {'name': 'proof_clarify', 'title': 'Clarify', 'cmd': 'clarify', 'prefilter_cmds': ['clarify'], 're': '\v\\clarify\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
-  \ {'name': 'proof_ref', 'title': 'Ref', 'cmd': 'checkref', 'prefilter_cmds': ['checkref'], 're': '\v\\checkref\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
-  \ {'name': 'proof_verify', 'title': 'Verify', 'cmd': 'verify', 'prefilter_cmds': ['verify'], 're': '\v\\verify\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
-  \ {'name': 'proof_delete', 'title': 'Delete', 'cmd': 'delete', 'prefilter_cmds': ['delete'], 're': '\v\\delete\s*\{[^}]*\}', 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_tighten', 'title': 'Tighten', 'cmd': 'tighten', 'prefilter_cmds': ['tighten'], 're': '\v\\tighten\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_edit', 'title': 'Edit', 'cmd': 'edit', 'prefilter_cmds': ['edit'], 're': '\v\\edit\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_add', 'title': 'Add', 'cmd': 'add', 'prefilter_cmds': ['add'], 're': '\v\\add\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_clarify', 'title': 'Clarify', 'cmd': 'clarify', 'prefilter_cmds': ['clarify'], 're': '\v\\clarify\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_ref', 'title': 'Ref', 'cmd': 'checkref', 'prefilter_cmds': ['checkref'], 're': '\v\\checkref\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_verify', 'title': 'Verify', 'cmd': 'verify', 'prefilter_cmds': ['verify'], 're': '\v\\verify\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
+  \ {'name': 'proof_delete', 'title': 'Delete', 'cmd': 'delete', 'prefilter_cmds': ['delete'], 're': '\v\\delete\s*' . s:proof_brace, 'in_content': 1, 'get_entry': function('VimtexProofTocGetEntry')},
   \]
 ]])
 
@@ -252,58 +255,82 @@ vim.api.nvim_create_autocmd("User", {
 })
 
 -- Proofreading macros (Ivan thesis / AGENTS.md): visible colours in the buffer, not the PDF.
+--
+-- Two brittleness fixes:
+-- 1) Builtin tex.vim's texRefOption omits texSpecialChar, so `\%` inside `\cite[...]`
+--    is parsed as a comment, the `]` never closes, and later macros lose highlighting.
+-- 2) A single `start={\ end=}` region ends at the first `}`, so nested `\emph{...}` etc.
+--    truncate the colour. Use nextgroup + self-nesting brace args instead.
 local proof_cmd_skip = [[skip="\%#=1\\\\[{}]"]]
--- matchgroup on start/end keeps the region inside the braces only; delim uses the same bg as the region.
-local proof_region_tpl = [[syntax region %s matchgroup=%s start="\\%s\s*{" %s end="}" contains=TOP,@NoSpell]]
+
+-- Command name match, then balanced-brace argument (self-nesting for nested `{...}`).
+-- containedin=ALL so macros still highlight inside a leaked texRefOption/texComment.
+local proof_cmd_tpl =
+	[[syntax match %s "\\%s\>" containedin=ALL nextgroup=%s skipwhite]]
+local proof_arg_tpl =
+	[[syntax region %s matchgroup=%s start="{" %s end="}" contains=%s,@NoSpell contained]]
 
 local proofreading_cmds = {
-  { cmd = "tighten", region = "texProofTighten", delim = "texProofCmdTighten", fg = "#4a3f2a", bg = "#ffcc80" },
-  { cmd = "edit", region = "texProofEdit", delim = "texProofCmdEdit", fg = "#4a2e2e", bg = "#ef9a9a" },
-  { cmd = "add", region = "texProofAdd", delim = "texProofCmdAdd", fg = "#3a4230", bg = "#c5e1a5" },
-  { cmd = "clarify", region = "texProofClarify", delim = "texProofCmdClarify", fg = "#2e3d48", bg = "#81d4fa" },
-  { cmd = "checkref", region = "texProofRef", delim = "texProofCmdRef", fg = "#2e4242", bg = "#80cbc4" },
-  { cmd = "verify", region = "texProofVerify", delim = "texProofCmdVerify", fg = "#3d2e42", bg = "#e1bee7" },
-  { cmd = "delete", region = "texProofDelete", delim = "texProofCmdDelete", fg = "#3a3a3a", bg = "#e0e0e0" },
-  { cmd = "sabhl", region = "texProofSabhl", delim = "texProofCmdSabhl", fg = "#2e3a48", bg = "#bbdefb" },
+	{ cmd = "tighten", region = "texProofTighten", fg = "#4a3f2a", bg = "#ffcc80" },
+	{ cmd = "edit", region = "texProofEdit", fg = "#4a2e2e", bg = "#ef9a9a" },
+	{ cmd = "add", region = "texProofAdd", fg = "#3a4230", bg = "#c5e1a5" },
+	{ cmd = "clarify", region = "texProofClarify", fg = "#2e3d48", bg = "#81d4fa" },
+	{ cmd = "checkref", region = "texProofRef", fg = "#2e4242", bg = "#80cbc4" },
+	{ cmd = "verify", region = "texProofVerify", fg = "#3d2e42", bg = "#e1bee7" },
+	{ cmd = "delete", region = "texProofDelete", fg = "#3a3a3a", bg = "#e0e0e0" },
+	{ cmd = "sabhl", region = "texProofSabhl", fg = "#2e3a48", bg = "#bbdefb" },
 }
 
 local author_todos = {
-  { cmd = "icgu", region = "texProofIcgU", delim = "texProofCmdIcgU", fg = "#4a452e", bg = "#fff59d" },
-  { cmd = "mpb", region = "texProofMpb", delim = "texProofCmdMpb", fg = "#404040", bg = "#eeeeee" },
-  { cmd = "fo", region = "texProofFo", delim = "texProofCmdFo", fg = "#3d422e", bg = "#e6ee9c" },
-  { cmd = "sab", region = "texProofSab", delim = "texProofCmdSab", fg = "#2e4248", bg = "#b2ebf2" },
-  { cmd = "fb", region = "texProofFb", delim = "texProofCmdFb", fg = "#2e4230", bg = "#c8e6c9" },
+	{ cmd = "icgu", region = "texProofIcgU", fg = "#4a452e", bg = "#fff59d" },
+	{ cmd = "mpb", region = "texProofMpb", fg = "#404040", bg = "#eeeeee" },
+	{ cmd = "fo", region = "texProofFo", fg = "#3d422e", bg = "#e6ee9c" },
+	{ cmd = "sab", region = "texProofSab", fg = "#2e4248", bg = "#b2ebf2" },
+	{ cmd = "fb", region = "texProofFb", fg = "#2e4230", bg = "#c8e6c9" },
 }
 
 local function apply_proofreading_highlights()
-  local function set_hl(name, fg, bg)
-    pcall(vim.api.nvim_set_hl, 0, name, { fg = fg, bg = bg, bold = false })
-  end
-  for _, item in ipairs(proofreading_cmds) do
-    set_hl(item.region, item.fg, item.bg)
-    set_hl(item.delim, item.fg, item.bg)
-  end
-  for _, item in ipairs(author_todos) do
-    set_hl(item.region, item.fg, item.bg)
-    set_hl(item.delim, item.fg, item.bg)
-  end
+	local function set_hl(name, fg, bg)
+		pcall(vim.api.nvim_set_hl, 0, name, { fg = fg, bg = bg, bold = false })
+	end
+	for _, item in ipairs(proofreading_cmds) do
+		-- Command match + matchgroup braces use `region`; body uses `regionArg`.
+		set_hl(item.region, item.fg, item.bg)
+		set_hl(item.region .. "Arg", item.fg, item.bg)
+	end
+	for _, item in ipairs(author_todos) do
+		set_hl(item.region, item.fg, item.bg)
+		set_hl(item.region .. "Arg", item.fg, item.bg)
+	end
+end
+
+---Allow `\%` (and other `\[$&%#{}_]`) inside `\cite[...]` so `%` does not start a comment.
+local function fix_tex_ref_option_specials()
+	pcall(vim.cmd, "syntax cluster texRefGroup add=texSpecialChar")
+end
+
+---Define syntax for one proofreading / author-todo macro.
+---@param item {cmd: string, region: string}
+local function define_proof_macro_syntax(item)
+	local arg = item.region .. "Arg"
+	pcall(vim.cmd, "syntax clear " .. item.region)
+	pcall(vim.cmd, "syntax clear " .. arg)
+	pcall(vim.cmd, string.format(proof_cmd_tpl, item.region, item.cmd, arg))
+	pcall(vim.cmd, string.format(proof_arg_tpl, arg, item.region, proof_cmd_skip, arg))
 end
 
 local function add_proofreading_syntax()
-  if vim.bo.filetype ~= "tex" then
-    return
-  end
-  apply_proofreading_highlights()
-  for _, item in ipairs(proofreading_cmds) do
-    pcall(vim.cmd, "syntax clear " .. item.region)
-    pcall(vim.cmd, "syntax clear " .. item.delim)
-    pcall(vim.cmd, string.format(proof_region_tpl, item.region, item.delim, item.cmd, proof_cmd_skip))
-  end
-  for _, item in ipairs(author_todos) do
-    pcall(vim.cmd, "syntax clear " .. item.region)
-    pcall(vim.cmd, "syntax clear " .. item.delim)
-    pcall(vim.cmd, string.format(proof_region_tpl, item.region, item.delim, item.cmd, proof_cmd_skip))
-  end
+	if vim.bo.filetype ~= "tex" then
+		return
+	end
+	fix_tex_ref_option_specials()
+	apply_proofreading_highlights()
+	for _, item in ipairs(proofreading_cmds) do
+		define_proof_macro_syntax(item)
+	end
+	for _, item in ipairs(author_todos) do
+		define_proof_macro_syntax(item)
+	end
 end
 
 local vimtex_proof_group = vim.api.nvim_create_augroup("VimtexProofreadingSyntax", { clear = true })
