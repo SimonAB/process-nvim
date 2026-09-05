@@ -126,94 +126,125 @@ vim.g.vimtex_compiler_latexmk_engines = {
 	_ = "-lualatex",
 }
 
--- Disable spell checking in citation arguments
--- This must be set before VimTeX initialises to take effect
--- lua-ul [soul]: \ul and \uline get underline; \st and \hl get custom syntax below (same command names)
-vim.g.vimtex_syntax_custom_cmds = {
-  { name = 'cite', argspell = false },
-  { name = 'supercite', argspell = false },
-  { name = 'citep', argspell = false },
-  { name = 'citet', argspell = false },
-  { name = 'citealp', argspell = false },
-  { name = 'citealt', argspell = false },
-  { name = 'citeauthor', argspell = false },
-  { name = 'citeyear', argspell = false },
-  { name = 'parencite', argspell = false },
-  { name = 'footcite', argspell = false },
-  { name = 'textcite', argspell = false },
-  { name = 'autocite', argspell = false },
-  { name = 'ul', argstyle = 'under' },
-  { name = 'uline', argstyle = 'under' },
+-- Disable spell checking in citation arguments; style soul/ul commands.
+-- Proofreading macros are registered here too so VimTeX owns brace nesting
+-- (avoids hand-rolled regions that fight texCmd/texArg and thrash redraw).
+-- This must be set before VimTeX initialises to take effect.
+local proofreading_cmds = {
+	{ cmd = "tighten", fg = "#4a3f2a", bg = "#ffcc80" },
+	{ cmd = "edit", fg = "#4a2e2e", bg = "#ef9a9a" },
+	{ cmd = "add", fg = "#3a4230", bg = "#c5e1a5" },
+	{ cmd = "clarify", fg = "#2e3d48", bg = "#81d4fa" },
+	{ cmd = "checkref", fg = "#2e4242", bg = "#80cbc4" },
+	{ cmd = "verify", fg = "#3d2e42", bg = "#e1bee7" },
+	{ cmd = "delete", fg = "#3a3a3a", bg = "#e0e0e0" },
+	{ cmd = "sabhl", fg = "#2e3a48", bg = "#bbdefb" },
 }
+
+local author_todos = {
+	{ cmd = "icgu", fg = "#4a452e", bg = "#fff59d" },
+	{ cmd = "mpb", fg = "#404040", bg = "#eeeeee" },
+	{ cmd = "fo", fg = "#3d422e", bg = "#e6ee9c" },
+	{ cmd = "sab", fg = "#2e4248", bg = "#b2ebf2" },
+	{ cmd = "fb", fg = "#2e4230", bg = "#c8e6c9" },
+}
+
+---VimTeX group names for a custom command (`add` → texCmdCAdd / texCAddArg).
+---@param cmd string
+---@return string cmd_group, string arg_group
+local function vimtex_custom_cmd_groups(cmd)
+	local name = "C" .. cmd:sub(1, 1):upper() .. cmd:sub(2)
+	return "texCmd" .. name, "tex" .. name .. "Arg"
+end
+
+local vimtex_custom_cmds = {
+	{ name = "cite", argspell = false },
+	{ name = "supercite", argspell = false },
+	{ name = "citep", argspell = false },
+	{ name = "citet", argspell = false },
+	{ name = "citealp", argspell = false },
+	{ name = "citealt", argspell = false },
+	{ name = "citeauthor", argspell = false },
+	{ name = "citeyear", argspell = false },
+	{ name = "parencite", argspell = false },
+	{ name = "footcite", argspell = false },
+	{ name = "textcite", argspell = false },
+	{ name = "autocite", argspell = false },
+	{ name = "ul", argstyle = "under" },
+	{ name = "uline", argstyle = "under" },
+}
+
+for _, item in ipairs(proofreading_cmds) do
+	local cmd_group = vimtex_custom_cmd_groups(item.cmd)
+	table.insert(vimtex_custom_cmds, {
+		name = item.cmd,
+		opt = false,
+		argspell = false,
+		hlgroup = cmd_group,
+	})
+end
+for _, item in ipairs(author_todos) do
+	local cmd_group = vimtex_custom_cmd_groups(item.cmd)
+	table.insert(vimtex_custom_cmds, {
+		name = item.cmd,
+		opt = false,
+		argspell = false,
+		hlgroup = cmd_group,
+	})
+end
+
+vim.g.vimtex_syntax_custom_cmds = vimtex_custom_cmds
+
 
 -- Function to apply citation spell exclusion rules
 local function apply_citation_nospell_rules()
-  -- Only apply if we're in a tex file
-  if vim.bo.filetype ~= 'tex' then return end
+	-- Only apply if we're in a tex file
+	if vim.bo.filetype ~= "tex" then
+		return
+	end
 
-  -- Clear any existing citation syntax rules first
-  pcall(vim.cmd, 'syntax clear texCiteArg')
-  pcall(vim.cmd, 'syntax clear texCiteNoSpell')
+	-- Clear any existing citation syntax rules first
+	pcall(vim.cmd, "syntax clear texCiteArg")
+	pcall(vim.cmd, "syntax clear texCiteNoSpell")
 
-  -- Use higher priority syntax rules with @NoSpell cluster
-  -- The 'contained' keyword prevents conflicts with existing VimTeX syntax
-  pcall(vim.cmd, [[syntax cluster NoSpell add=texCiteNoSpell]])
+	-- Use higher priority syntax rules with @NoSpell cluster
+	-- The 'contained' keyword prevents conflicts with existing VimTeX syntax
+	pcall(vim.cmd, [[syntax cluster NoSpell add=texCiteNoSpell]])
 
-  -- Define comprehensive syntax matches with high priority
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\cite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\supercite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citep{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citet{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citealp{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citealt{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citeauthor{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citeyear{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\parencite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\footcite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\textcite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-  pcall(vim.cmd, [[syntax match texCiteNoSpell "\\autocite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
-
-  -- Alternative approach: directly modify spell checking regions
-  -- This creates regions that are explicitly excluded from spell checking
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\cite{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\supercite{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\citep{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\citet{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\citealp{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\citealt{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\citeauthor{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\citeyear{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\parencite{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\footcite{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\textcite{" end="}" oneline contains=@NoSpell]])
-  pcall(vim.cmd, [[syntax region texCiteRegion start="\\autocite{" end="}" oneline contains=@NoSpell]])
-
-  -- Force syntax highlighting refresh with higher priority
-  pcall(vim.cmd, 'syntax sync fromstart')
+	-- Define comprehensive syntax matches with high priority
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\cite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\supercite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citep{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citet{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citealp{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citealt{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citeauthor{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\citeyear{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\parencite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\footcite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\textcite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
+	pcall(vim.cmd, [[syntax match texCiteNoSpell "\\autocite{[^}]*}" contains=@NoSpell contained containedin=ALL]])
 end
 
 -- Complete spell exclusion using @NoSpell syntax groups
 -- This prevents both highlighting AND navigation (]s/[s) from detecting citation arguments
-local citation_spell_group = vim.api.nvim_create_augroup('VimTeXCitationSpell', { clear = true })
+local citation_spell_group = vim.api.nvim_create_augroup("VimTeXCitationSpell", { clear = true })
 
--- Apply rules on multiple events to ensure they're always active
-vim.api.nvim_create_autocmd({"FileType", "BufEnter", "BufReadPost", "Syntax"}, {
-  group = citation_spell_group,
-  pattern = "tex",
-  desc = "Configure LaTeX citation spell exclusion",
-  callback = function()
-    -- Apply rules immediately
-    apply_citation_nospell_rules()
-
-    -- Also apply after a delay to handle VimTeX initialization
-    vim.defer_fn(apply_citation_nospell_rules, 100)
-    vim.defer_fn(apply_citation_nospell_rules, 300)
-  end,
+-- Avoid Syntax + sync-fromstart: that combination forces full reparse and causes
+-- wrap/redraw artefacts on long thesis paragraphs.
+vim.api.nvim_create_autocmd({ "FileType", "BufReadPost" }, {
+	group = citation_spell_group,
+	pattern = "tex",
+	desc = "Configure LaTeX citation spell exclusion",
+	callback = function()
+		apply_citation_nospell_rules()
+		vim.defer_fn(apply_citation_nospell_rules, 150)
+	end,
 })
 
 -- Create manual command to reapply citation spell rules
-vim.api.nvim_create_user_command('VimTexFixCitationSpell', apply_citation_nospell_rules, {
-  desc = "Manually apply citation spell exclusion rules"
+vim.api.nvim_create_user_command("VimTexFixCitationSpell", apply_citation_nospell_rules, {
+	desc = "Manually apply citation spell exclusion rules",
 })
 
 -- Auto-apply when VimTeX state changes
@@ -254,113 +285,125 @@ vim.api.nvim_create_autocmd("User", {
   end,
 })
 
--- Proofreading macros (Ivan thesis / AGENTS.md): visible colours in the buffer, not the PDF.
---
--- Two brittleness fixes:
--- 1) Builtin tex.vim's texRefOption omits texSpecialChar, so `\%` inside `\cite[...]`
---    is parsed as a comment, the `]` never closes, and later macros lose highlighting.
--- 2) A single `start={\ end=}` region ends at the first `}`, so nested `\emph{...}` etc.
---    truncate the colour. Use nextgroup + self-nesting brace args instead.
-local proof_cmd_skip = [[skip="\%#=1\\\\[{}]"]]
-
--- Command name match, then balanced-brace argument (self-nesting for nested `{...}`).
--- containedin=ALL so macros still highlight inside a leaked texRefOption/texComment.
-local proof_cmd_tpl =
-	[[syntax match %s "\\%s\>" containedin=ALL nextgroup=%s skipwhite]]
-local proof_arg_tpl =
-	[[syntax region %s matchgroup=%s start="{" %s end="}" contains=%s,@NoSpell contained]]
-
-local proofreading_cmds = {
-	{ cmd = "tighten", region = "texProofTighten", fg = "#4a3f2a", bg = "#ffcc80" },
-	{ cmd = "edit", region = "texProofEdit", fg = "#4a2e2e", bg = "#ef9a9a" },
-	{ cmd = "add", region = "texProofAdd", fg = "#3a4230", bg = "#c5e1a5" },
-	{ cmd = "clarify", region = "texProofClarify", fg = "#2e3d48", bg = "#81d4fa" },
-	{ cmd = "checkref", region = "texProofRef", fg = "#2e4242", bg = "#80cbc4" },
-	{ cmd = "verify", region = "texProofVerify", fg = "#3d2e42", bg = "#e1bee7" },
-	{ cmd = "delete", region = "texProofDelete", fg = "#3a3a3a", bg = "#e0e0e0" },
-	{ cmd = "sabhl", region = "texProofSabhl", fg = "#2e3a48", bg = "#bbdefb" },
-}
-
-local author_todos = {
-	{ cmd = "icgu", region = "texProofIcgU", fg = "#4a452e", bg = "#fff59d" },
-	{ cmd = "mpb", region = "texProofMpb", fg = "#404040", bg = "#eeeeee" },
-	{ cmd = "fo", region = "texProofFo", fg = "#3d422e", bg = "#e6ee9c" },
-	{ cmd = "sab", region = "texProofSab", fg = "#2e4248", bg = "#b2ebf2" },
-	{ cmd = "fb", region = "texProofFb", fg = "#2e4230", bg = "#c8e6c9" },
-}
-
+-- Proofreading macro colours: registered via g:vimtex_syntax_custom_cmds above.
+-- VimTeX only calls init_custom() when a syntax *package* loads, so we invoke it
+-- ourselves after init, then paint texCmdC*/texC*Arg and restyle braces.
 local function apply_proofreading_highlights()
 	local function set_hl(name, fg, bg)
+		-- Keep default combine behaviour so Visual can paint over these backgrounds.
+		-- Opaque todo fills + forced statusline redraws were leaving ghost selection cells.
 		pcall(vim.api.nvim_set_hl, 0, name, { fg = fg, bg = bg, bold = false })
 	end
 	for _, item in ipairs(proofreading_cmds) do
-		-- Command match + matchgroup braces use `region`; body uses `regionArg`.
-		set_hl(item.region, item.fg, item.bg)
-		set_hl(item.region .. "Arg", item.fg, item.bg)
+		local cmd_group, arg_group = vimtex_custom_cmd_groups(item.cmd)
+		set_hl(cmd_group, item.fg, item.bg)
+		set_hl(arg_group, item.fg, item.bg)
 	end
 	for _, item in ipairs(author_todos) do
-		set_hl(item.region, item.fg, item.bg)
-		set_hl(item.region .. "Arg", item.fg, item.bg)
+		local cmd_group, arg_group = vimtex_custom_cmd_groups(item.cmd)
+		set_hl(cmd_group, item.fg, item.bg)
+		set_hl(arg_group, item.fg, item.bg)
 	end
 end
 
----Allow `\%` (and other `\[$&%#{}_]`) inside `\cite[...]` so `%` does not start a comment.
-local function fix_tex_ref_option_specials()
-	pcall(vim.cmd, "syntax cluster texRefGroup add=texSpecialChar")
-end
-
----Define syntax for one proofreading / author-todo macro.
----@param item {cmd: string, region: string}
-local function define_proof_macro_syntax(item)
-	local arg = item.region .. "Arg"
-	pcall(vim.cmd, "syntax clear " .. item.region)
-	pcall(vim.cmd, "syntax clear " .. arg)
-	pcall(vim.cmd, string.format(proof_cmd_tpl, item.region, item.cmd, arg))
-	pcall(vim.cmd, string.format(proof_arg_tpl, arg, item.region, proof_cmd_skip, arg))
+---Restyle VimTeX arg regions so `{` / `}` use the same highlight as the body.
+local function polish_proofreading_arg_delims()
+	if vim.bo.filetype ~= "tex" then
+		return
+	end
+	-- Skip while selecting: syntax clear/redefine mid-visual corrupts the screen.
+	local mode = vim.fn.mode(true)
+	if mode == "v" or mode == "V" or mode:match("\22") then
+		return
+	end
+	-- %% in format string → literal %# for Vim's NFA engine flag
+	local arg_tpl =
+		[[syntax region %s matchgroup=%s start="{" skip="%%#=1\\[\\\}]" end="}" contained contains=TOP,@NoSpell]]
+	for _, item in ipairs(proofreading_cmds) do
+		local cmd_group, arg_group = vimtex_custom_cmd_groups(item.cmd)
+		pcall(vim.cmd, "syntax clear " .. arg_group)
+		pcall(vim.cmd, string.format(arg_tpl, arg_group, cmd_group))
+	end
+	for _, item in ipairs(author_todos) do
+		local cmd_group, arg_group = vimtex_custom_cmd_groups(item.cmd)
+		pcall(vim.cmd, "syntax clear " .. arg_group)
+		pcall(vim.cmd, string.format(arg_tpl, arg_group, cmd_group))
+	end
 end
 
 local function add_proofreading_syntax()
 	if vim.bo.filetype ~= "tex" then
 		return
 	end
-	fix_tex_ref_option_specials()
+	local mode = vim.fn.mode(true)
+	if mode == "v" or mode == "V" or mode:match("\22") then
+		return
+	end
+	-- Ensure custom cmds exist even when no syntax package addon loaded.
+	-- Do not call init_custom if groups already exist (it appends duplicate matches).
+	local listing = vim.fn.execute("silent! syntax list texCmdCVerify")
+	if not listing:find("xxx", 1, true) then
+		pcall(vim.fn["vimtex#syntax#core#init_custom"])
+	end
 	apply_proofreading_highlights()
-	for _, item in ipairs(proofreading_cmds) do
-		define_proof_macro_syntax(item)
-	end
-	for _, item in ipairs(author_todos) do
-		define_proof_macro_syntax(item)
-	end
+	polish_proofreading_arg_delims()
 end
 
 local vimtex_proof_group = vim.api.nvim_create_augroup("VimtexProofreadingSyntax", { clear = true })
-vim.api.nvim_create_autocmd({ "FileType", "Syntax" }, {
-  group = vimtex_proof_group,
-  pattern = "tex",
-  desc = "Colourise proofreading todo macros in TeX buffers",
-  callback = function()
-    add_proofreading_syntax()
-    vim.defer_fn(add_proofreading_syntax, 100)
-  end,
-})
+
 vim.api.nvim_create_autocmd("User", {
-  group = vimtex_proof_group,
-  pattern = "VimtexEventInitPost",
-  desc = "Re-apply proofreading syntax after VimTeX init",
-  callback = function()
-    vim.defer_fn(add_proofreading_syntax, 10)
-  end,
+	group = vimtex_proof_group,
+	pattern = "VimtexEventInitPost",
+	desc = "Colourise proofreading todo macros after VimTeX syntax init",
+	callback = function()
+		vim.defer_fn(add_proofreading_syntax, 20)
+	end,
+})
+vim.api.nvim_create_autocmd("FileType", {
+	group = vimtex_proof_group,
+	pattern = "tex",
+	desc = "Colourise proofreading todos once VimTeX state is ready",
+	callback = function()
+		-- Deferred pack load: this config may register after the first InitPost.
+		vim.defer_fn(add_proofreading_syntax, 50)
+		vim.defer_fn(add_proofreading_syntax, 250)
+	end,
 })
 vim.api.nvim_create_autocmd("ColorScheme", {
-  group = vimtex_proof_group,
-  desc = "Re-apply proofreading todo colours after theme change",
-  callback = function()
-    vim.defer_fn(apply_proofreading_highlights, 50)
-  end,
+	group = vimtex_proof_group,
+	desc = "Re-apply proofreading todo colours after theme change",
+	callback = function()
+		vim.defer_fn(apply_proofreading_highlights, 50)
+	end,
+})
+
+-- After leaving visual mode, clear residual selection paint over todo backgrounds
+-- on long wrapped paragraphs (terminal cells can lag behind Visual).
+vim.api.nvim_create_autocmd("ModeChanged", {
+	group = vimtex_proof_group,
+	pattern = "[vV\x16]:n",
+	desc = "Redraw TeX window after visual selection to clear ghost highlights",
+	callback = function()
+		if vim.bo.filetype ~= "tex" then
+			return
+		end
+		vim.schedule(function()
+			pcall(vim.cmd, "redraw")
+		end)
+	end,
 })
 vim.api.nvim_create_user_command("VimTexProofreadingSyntax", add_proofreading_syntax, {
-  desc = "Re-apply proofreading todo syntax highlighting",
+	desc = "Re-apply proofreading todo syntax highlighting",
 })
+
+-- Catch tex buffers already open when this deferred plugin config loads.
+vim.defer_fn(function()
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "tex" then
+			vim.api.nvim_buf_call(buf, add_proofreading_syntax)
+		end
+	end
+end, 300)
 
 -- Raise Ghostty after Skim inverse search so the cursor jump is visible behind Skim.
 if is_macos then

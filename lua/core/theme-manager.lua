@@ -422,6 +422,20 @@ function ThemeManager.apply_tex_style_highlights()
   pcall(vim.api.nvim_set_hl, 0, "texStyleHlDelim", hl_yellow)
 end
 
+---Make Visual fully replace underlying syntax attributes (including opaque backgrounds).
+---Without `nocombine`, selecting over coloured TeX proofreading regions on wrapped lines
+---often leaves uncleared selection cells until a full redraw.
+---@return nil
+function ThemeManager.apply_visual_nocombine()
+	for _, group in ipairs({ "Visual", "VisualNOS" }) do
+		local ok, current = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
+		if ok and current then
+			current.nocombine = true
+			pcall(vim.api.nvim_set_hl, 0, group, current)
+		end
+	end
+end
+
 ---Apply the configured UI opacity across Neovim.
 ---Note: Blur effects are handled by the terminal emulator/window manager when transparency is enabled.
 ---On macOS, the window manager automatically applies blur to transparent windows.
@@ -715,6 +729,7 @@ function ThemeManager.setup_highlight_autocmd()
 		end
 		ThemeManager.apply_link_highlights()
 		ThemeManager.apply_tex_style_highlights()
+		ThemeManager.apply_visual_nocombine()
 		ThemeManager.apply_global_opacity({ apply_window_blends = apply_window_blends })
 		ThemeManager.apply_cursorline_suppression()
 	end
@@ -798,6 +813,7 @@ function ThemeManager.init()
 	end
 	ThemeManager.apply_link_highlights()
 	ThemeManager.apply_tex_style_highlights()
+	ThemeManager.apply_visual_nocombine()
 	ThemeManager.apply_global_opacity()
 	ThemeManager.apply_cursorline_suppression()
 

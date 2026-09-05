@@ -289,17 +289,37 @@ if ok then
 		desc = "Refresh statusline when spell options change",
 		callback = refresh_statusline,
 	})
-	vim.api.nvim_create_autocmd({ "ModeChanged", "CursorMoved", "CursorMovedI" }, {
-		group = refresh_augroup,
-		desc = "Refresh statusline when visual selection changes",
-		callback = function(ev)
+
+	-- Debounce visual-mode CursorMoved refreshes: force-refreshing lualine on every
+	-- motion races screen redraw with opaque syntax backgrounds (e.g. VimTeX proof
+	-- todos) and leaves ghost selection / uncleared wrapped lines.
+	local visual_refresh_pending = false
+	local function schedule_visual_statusline_refresh()
+		if visual_refresh_pending then
+			return
+		end
+		visual_refresh_pending = true
+		vim.defer_fn(function()
+			visual_refresh_pending = false
 			local mode = vim.fn.mode(true)
 			if mode == "v" or mode == "V" or mode:match("\22") then
 				refresh_statusline()
-				return
 			end
-			if ev.event == "ModeChanged" then
-				refresh_statusline()
+		end, 120)
+	end
+
+	vim.api.nvim_create_autocmd("ModeChanged", {
+		group = refresh_augroup,
+		desc = "Refresh statusline on mode change (visual selection enter/leave)",
+		callback = refresh_statusline,
+	})
+	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+		group = refresh_augroup,
+		desc = "Debounced statusline refresh while visual selection changes",
+		callback = function()
+			local mode = vim.fn.mode(true)
+			if mode == "v" or mode == "V" or mode:match("\22") then
+				schedule_visual_statusline_refresh()
 			end
 		end,
 	})
