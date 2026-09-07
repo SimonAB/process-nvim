@@ -230,9 +230,10 @@ Install language servers via Mason:
 
 **Arch Linux (Zathura)**:
 
-- VimTeX may configure this automatically
-- If needed, configure in `~/.config/zathura/zathurarc`: `set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""`
-- See Installation Guide for detailed setup
+- Install: `sudo pacman -S zathura zathura-pdf-mupdf`
+- Run `~/.config/nvim/scripts/configure-zathura-synctex.sh` (writes `~/.config/zathura/zathurarc`)
+- VimTeX uses `zathura_simple` on Linux (Wayland-safe; no xdotool)
+- Forward search: `\lv`; inverse search: Ctrl+click in Zathura
 
 ## Recent Changes
 

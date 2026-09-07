@@ -243,16 +243,12 @@ In Skim:
 
 ##### Arch Linux: Configure Zathura
 
-VimTeX automatically configures Zathura for inverse search when using `vim.g.vimtex_view_method = "zathura"`. However, you may need to configure Zathura manually if automatic setup doesn't work.
-
-Use VimTeX's built-in function directly in `~/.config/zathura/zathurarc`:
-
-```
-set synctex true
-set synctex-editor-command "nvim --headless -c \"VimtexInverseSearch %{line} '%{input}'\""
+```bash
+sudo pacman -S --needed zathura zathura-pdf-mupdf
+~/.config/nvim/scripts/configure-zathura-synctex.sh
 ```
 
-**Note**: VimTeX automatically starts Zathura with the `-x` argument for inverse search, so manual configuration may not be necessary. Test first without configuring `synctex-editor-command`.
+VimTeX uses `zathura_simple` on Linux (Wayland-safe; no `xdotool`). It also starts Zathura with `-x` for inverse search. The script writes a durable `~/.config/zathura/zathurarc` fallback.
 
 In Zathura:
 - Ctrl+Click for inverse search (PDF → Neovim)

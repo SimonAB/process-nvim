@@ -94,16 +94,15 @@ local is_linux = vim.fn.has("unix") == 1 and vim.fn.has("macunix") == 0
 
 -- VimTeX configuration (vim variables)
 if is_macos then
-	-- macOS: Use Skim for PDF viewing
+	-- macOS: Use Skim for PDF viewing (inverse search via scripts/configure-skim-synctex.sh).
 	vim.g.vimtex_view_method = "skim"
 	-- Keep the terminal/Neovim window focused after forward search (\lv).
 	vim.g.vimtex_view_skim_activate = 0
 	vim.g.vimtex_view_skim_reading_bar = 1
 elseif is_linux then
-	-- Linux: Use Zathura for PDF viewing
-	vim.g.vimtex_view_method = "zathura"
-	vim.g.vimtex_view_general_viewer = "zathura"
-	vim.g.vimtex_view_general_options = "--synctex-forward %line:0:%tex %pdf"
+	-- Linux/Wayland: zathura_simple avoids xdotool (X11-only). VimTeX still
+	-- passes -x VimtexInverseSearch when starting Zathura; zathurarc is a fallback.
+	vim.g.vimtex_view_method = "zathura_simple"
 else
 	-- Fallback: generic viewer
 	vim.g.vimtex_view_method = "general"
@@ -406,23 +405,44 @@ vim.defer_fn(function()
 end, 300)
 
 -- Raise Ghostty after Skim inverse search so the cursor jump is visible behind Skim.
-if is_macos then
-	local vimtex_inverse_focus_group = vim.api.nvim_create_augroup("VimtexInverseSearchFocus", { clear = true })
+-- Keep Ghostty focused around SyncTeX jumps (Skim activate=0 on macOS; Zathura on Linux).
+do
+	local vimtex_focus_group = vim.api.nvim_create_augroup("VimtexSyncTeXFocus", { clear = true })
 
-	---Bring Ghostty to the foreground after a successful VimTeX inverse search.
-	local function focus_terminal_after_inverse_search()
+	---Bring Ghostty to the foreground after a SyncTeX jump.
+	local function focus_ghostty()
 		vim.schedule(function()
-			local ok = pcall(vim.system, { "osascript", "-e", 'tell application "Ghostty" to activate' }, { detach = true })
+			local cmd
+			if is_macos then
+				cmd = { "osascript", "-e", 'tell application "Ghostty" to activate' }
+			elseif is_linux and vim.fn.executable("hyprctl") == 1 then
+				cmd = { "hyprctl", "dispatch", "focuswindow", "class:com.mitchellh.ghostty" }
+			else
+				return
+			end
+			local ok = pcall(vim.system, cmd, { detach = true })
 			if not ok then
-				vim.notify("Failed to focus Ghostty after inverse search", vim.log.levels.DEBUG)
+				vim.notify("Failed to focus Ghostty after SyncTeX", vim.log.levels.DEBUG)
 			end
 		end)
 	end
 
+	-- Inverse search (PDF → Neovim): always raise the terminal so the jump is visible.
 	vim.api.nvim_create_autocmd("User", {
-		group = vimtex_inverse_focus_group,
+		group = vimtex_focus_group,
 		pattern = "VimtexEventViewReverse",
-		desc = "Raise Ghostty after Skim inverse search",
-		callback = focus_terminal_after_inverse_search,
+		desc = "Raise Ghostty after PDF inverse search",
+		callback = focus_ghostty,
 	})
+
+	-- Forward search (Neovim → PDF): on Linux, reclaim focus after Zathura maps/activates.
+	-- macOS uses vimtex_view_skim_activate = 0 instead.
+	if is_linux then
+		vim.api.nvim_create_autocmd("User", {
+			group = vimtex_focus_group,
+			pattern = "VimtexEventView",
+			desc = "Keep Ghostty focused after Zathura forward search",
+			callback = focus_ghostty,
+		})
+	end
 end
