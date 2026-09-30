@@ -110,6 +110,12 @@ else
 	vim.g.vimtex_view_general_options = "--synctex-forward %line:0:%tex %pdf"
 end
 
+-- LuaTeX logs this longtable split diagnostic as ignored; keep it out of VimTeX quickfix.
+vim.g.vimtex_quickfix_ignore_filters = vim.list_extend(
+	vim.g.vimtex_quickfix_ignore_filters or {},
+	{ "Infinite glue shrinkage found in box being split" }
+)
+
 vim.g.vimtex_compiler_method = "latexmk" -- Use latexmk for compilation
 -- Compile beside the .tex (matches most manuscripts and texlab auxDirectory = ".").
 -- latexmk runs biber/bibtex automatically when the bibliography backend requires it.
