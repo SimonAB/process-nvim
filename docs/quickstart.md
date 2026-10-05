@@ -80,7 +80,9 @@ brew install --cask skim
 brew install typst
 
 # Julia programming (optional)
-brew install julia
+brew install juliaup
+juliaup add release
+juliaup default release
 
 # R programming (optional)
 brew install r-rig

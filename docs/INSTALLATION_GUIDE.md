@@ -357,11 +357,15 @@ quarto check
 
 ```bash
 # Install Julia
-brew install julia
+brew install juliaup
+juliaup add release
+juliaup default release
 
 # Verify installation
-julia --version  # 1.9.0+ recommended
+julia --version  # Current stable release
 ```
+
+Keep `release` as the default channel. To test another installed channel, invoke it explicitly, for example `julia +lts`. See the [Juliaup documentation](https://github.com/JuliaLang/juliaup).
 
 #### Arch Linux
 

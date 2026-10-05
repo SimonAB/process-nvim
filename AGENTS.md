@@ -645,7 +645,7 @@ If you encounter patterns not covered here or need clarification:
 
 ## Learned Workspace Facts
 
-- This repo is the nested Neovim config at `~/Documents/etc/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features such as multicursor/graphics under active adoption).
+- This repo is the nested Neovim config at `~/SynologyDrive/etc/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features such as multicursor/graphics under active adoption).
 - Flexoki colourscheme is loaded from the fork `SimonAB/flexoki-neovim` (not stock kepano), including transparent editor/float options.
 - CodeCompanion ACP is wired for Cursor and local Ollama; AI keymaps live under the `<leader>A` which-key group.
 - Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL.

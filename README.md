@@ -257,4 +257,4 @@ See [CHANGELOG](docs/CHANGELOG.md) for complete version history.
 
 Provided as-is for educational and personal use.
 
-**Note**: Requires Neovim 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum for vim.pack). Older versions: use lazy.nvim or packer.nvim.
+**Note**: Requires Neovim 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum for vim.pack). Upgrade older Neovim installations before using this configuration; `vim.pack` is the only supported plugin manager.
