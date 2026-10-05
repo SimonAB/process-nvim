@@ -83,7 +83,9 @@ brew install typst
 brew install julia
 
 # R programming (optional)
-brew install r
+brew install r-rig
+rig system user-mode
+rig add release
 ```
 
 #### Arch Linux

@@ -429,7 +429,9 @@ Install Python LSP via Mason:
 
 ```bash
 # R programming language
-brew install r
+brew install r-rig
+rig system user-mode
+rig add release
 
 # Verify installation
 R --version
