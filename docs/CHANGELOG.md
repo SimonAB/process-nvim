@@ -7,6 +7,9 @@
 - Resolve Obsidian file and attachment pickers from the active client vault rather than the plugin defaults.
 - Prefer `~/SynologyDrive/Software/Forge` for Forge navigation, retaining `FORGE_DIR` and the older location as fallbacks.
 
+### Markdown
+- Fill empty inline image descriptions from filename stems on save, including Obsidian notes, R Markdown and Quarto. Preserve existing descriptions, destinations and titles; skip frontmatter, code and comments. Uses Neovim’s incremental Markdown parser without external scripts or model calls.
+
 ### File search
 - `<leader>f` lists files newest-modified first with an empty query; typing uses the existing fuzzy ranking, and clearing the query restores modification order. Existing exclusions and preview settings are retained.
 

@@ -57,6 +57,14 @@ pcall(dofile, project_require)
 -- Load core configuration
 require("config")
 
+-- Keep Markdown image labels local and independent of optional plugins.
+local image_alt_ok, image_alt = pcall(require, "core.markdown-image-alt")
+if image_alt_ok then
+	image_alt.setup()
+else
+	vim.notify("Markdown image label helper not found", vim.log.levels.WARN)
+end
+
 -- Keymaps are split to keep startup fast and predictable:
 -- - `keymaps-core` contains only plugin-independent mappings and is safe to load immediately.
 -- - `keymaps-plugins` contains mappings which call into plugins (Telescope, Mason, etc.).

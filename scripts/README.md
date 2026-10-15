@@ -11,6 +11,7 @@ Utility scripts for this Neovim configuration. Paths are relative to the repo ro
 | `test-dashboard-cache.lua` | Check asynchronous discovery, cache reuse, expiry and invalidation |
 | `test-dashboard-async-ui.lua` | Check dashboard refresh, directory isolation and shortcut rebinding |
 | `test-telescope-modified.lua` | Check modification-date sorting and fuzzy-search delegation |
+| `test-markdown-image-alt.lua` | Check filename-derived image labels, code exclusions and save-time insertion |
 | `test-config.sh` | Headless checks (e.g. CodeCompanion commands after plugin load) |
 | `test-markdown-preview.lua` | Markdown preview plugin smoke test |
 | `performance_test.lua` | Startup / load timing helper |
@@ -18,4 +19,4 @@ Utility scripts for this Neovim configuration. Paths are relative to the repo ro
 
 Do not commit `*.backup` copies of scripts; they are ignored via `.gitignore`.
 
-Run the four file-search and dashboard checks above from the repository root with `nvim --headless -u NONE -i NONE -l scripts/<test>.lua`. The dashboard UI check uses the installed mini.nvim plugin.
+Run the file-search, dashboard and image-label checks above from the repository root with `nvim --headless -u NONE -i NONE -l scripts/<test>.lua`. The dashboard UI check uses the installed mini.nvim plugin.
