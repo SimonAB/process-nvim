@@ -29,7 +29,7 @@
       "src": "https://github.com/catppuccin/nvim"
     },
     "codecompanion.nvim": {
-      "rev": "9af12c15d0604f429e034ea7542f6cd038ff909a",
+      "rev": "3dd1ef7fa8d6aeb27020023e40293bac588de714",
       "src": "https://github.com/olimorris/codecompanion.nvim"
     },
     "flexoki-neovim": {
@@ -41,7 +41,7 @@
       "src": "https://github.com/projekt0n/github-nvim-theme"
     },
     "gitsigns.nvim": {
-      "rev": "070a5d7b985546cc57e1fc61e5bc507fecac6045",
+      "rev": "fd780920613e541cbdfac41bf711583ed49f9249",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "gruvbox.nvim": {
@@ -65,7 +65,7 @@
       "src": "https://github.com/iamcco/markdown-preview.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "b3298993d55fa194279b5eb9dbfb3a43da65cadf",
+      "rev": "00b5473cca4db5b410ff4bae724e3b6e21f2687f",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -73,7 +73,7 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "561751e839b99a4baca36b9d963166b66d2536a6",
+      "rev": "8831fa150fa26492cfe135801fa498132f1491d2",
       "src": "https://github.com/echasnovski/mini.nvim"
     },
     "nord-vim": {
@@ -81,19 +81,19 @@
       "src": "https://github.com/arcticicestudio/nord-vim"
     },
     "nvim-lspconfig": {
-      "rev": "3e8d598d3b5f8338a41699c436e5fa11d2666cf0",
+      "rev": "6d27c288ff951e1e94cb5f91c800adeddf0dc0c2",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
-      "rev": "478c69c0fe253caea88de9c5e138bfa77395a59a",
+      "rev": "355bcc85a48f45b3e728219f10b880d569928965",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {
-      "rev": "910fdf6f49e9dee7e7257c7d11a76b040fdfb9de",
+      "rev": "1a4f47b03dfe92d28de7d5654c67327ef008c9e6",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-web-devicons": {
-      "rev": "58447c1fca354bbf184425e4a8d01deecbd6f3c4",
+      "rev": "ec309a0eaff6ea967e58c275996155ab5c16938d",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
     },
     "obsidian.nvim": {
@@ -157,7 +157,7 @@
       "src": "https://github.com/chomosuke/typst-preview.nvim"
     },
     "vimtex": {
-      "rev": "16a5609d17a436db7f48046d91747fd6a9d75c74",
+      "rev": "98615cefc441aaa5721c144ecfeacddcdf78816d",
       "src": "https://github.com/lervag/vimtex"
     },
     "which-key.nvim": {
