@@ -7,6 +7,12 @@ local config = require("plugins.mini-nvim.config")
 local utils = require("plugins.mini-nvim.utils")
 local dashboard_content = require("plugins.mini-nvim.dashboard-content")
 
+local width_ok, dashboard_width = pcall(require, "plugins.mini-nvim.dashboard-width")
+if not width_ok then
+	vim.notify("Dashboard width helper not found", vim.log.levels.WARN)
+	return {}
+end
+
 local M = {}
 
 -- Setup the dashboard
@@ -64,7 +70,10 @@ function M.setup()
 		end
 		local prefix = ms and ("⚡ Startup: " .. tostring(ms) .. " ms") or "⚡ Startup: n/a"
 		return ascii .. "\n" .. prefix .. "\n"
-			.. vim.fn.fnamemodify(vim.fn.getcwd(), ":~") .. " · newest first"
+			.. dashboard_width.shorten(
+				vim.fn.fnamemodify(vim.fn.getcwd(), ":~"),
+				math.max(1, math.floor(vim.api.nvim_win_get_width(0) * 0.7) - 15)
+			) .. " · newest first"
 	end
 
 	-- Exclude hjkl from query filtering so they move the current item; exclude q so
@@ -90,6 +99,7 @@ function M.setup()
 		content_hooks = (function()
 			local hooks = starter.gen_hook or {}
 			return {
+				dashboard_width.fit_content,
 				hooks.adding_bullet and hooks.adding_bullet() or function(x)
 					return x
 				end,
@@ -265,6 +275,25 @@ function M.setup_autocommands()
 				vim.defer_fn(function()
 					pcall(vim.cmd, "MiniStarter")
 				end, 50)
+			end
+		end,
+	})
+
+	local resize_group = vim.api.nvim_create_augroup("DashboardResize", { clear = true })
+	vim.api.nvim_create_autocmd("WinResized", {
+		group = resize_group,
+		callback = function()
+			for _, win in ipairs(vim.api.nvim_list_wins()) do
+				if vim.api.nvim_win_is_valid(win) then
+					local buf = vim.api.nvim_win_get_buf(win)
+					if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "ministarter" then
+						vim.api.nvim_win_call(win, function()
+							pcall(function()
+								_G.MiniStarter.refresh(buf)
+							end)
+						end)
+					end
+				end
 			end
 		end,
 	})
