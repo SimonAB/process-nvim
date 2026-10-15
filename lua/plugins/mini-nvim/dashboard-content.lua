@@ -98,17 +98,17 @@ function M.create_shortcuts()
 		{
 			name = "Find files",
 			action = "Telescope find_files",
-			section = "Shortcuts",
+			section = "Actions",
 		},
 		{
 			name = "Grep",
 			action = "Telescope live_grep",
-			section = "Shortcuts",
+			section = "Actions",
 		},
 		{
 			name = "Quit",
 			action = "confirm qall",
-			section = "Shortcuts",
+			section = "Actions",
 		},
 		{
 			name = "Update plugins",
@@ -122,7 +122,7 @@ function M.create_shortcuts()
 					end
 				end, 100)
 			end,
-			section = "Shortcuts",
+			section = "Actions",
 		},
 	}
 end
@@ -139,29 +139,87 @@ function M.create_projects()
 		local label = string.format("%d. ", idx)
 		local name = label .. " " .. utils.get_basename(dir)
 		local action = string.format("lua require('telescope.builtin').find_files({ cwd = [[%s]] })", dir)
-		table.insert(projects, { name = name, action = action, section = "Projects" })
+		table.insert(projects, { name = name, action = action, section = "Recent projects" })
 		idx = idx + 1
 	end
 
 	return projects
 end
 
--- Create recent files section with caching
+---Create history entries outside the current directory tree.
+---@return table items Recent files with paths to distinguish matching names
 function M.create_recent_files()
-	local recent_files = {}
+	local items = {}
+	local cwd = vim.uv.fs_realpath(vim.fn.getcwd()) or vim.fn.getcwd()
+	for _, file in ipairs(vim.v.oldfiles or {}) do
+		local path = vim.uv.fs_realpath(file)
+		if path and path ~= cwd and path:sub(1, #cwd + 1) ~= cwd .. "/"
+			and vim.fn.filereadable(path) == 1 then
+			table.insert(items, {
+				name = vim.fn.fnamemodify(path, ":~"),
+				action = "edit " .. utils.escape_filename(path),
+				section = "Recent files elsewhere",
+			})
+			if #items >= config.DASHBOARD.MAX_RECENT_FILES then
+				break
+			end
+		end
+	end
+	return items
+end
 
-	-- Use cached recent files if available
-	local recent_file_list = M.get_recent_files(config.DASHBOARD.MAX_RECENT_FILES)
-
-	for i, file in ipairs(recent_file_list) do
-		local key = config.DASHBOARD.RECENT_FILE_KEYS[i]
-		local label = string.format("%s. ", key)
-		local name = label .. " " .. utils.get_basename(file)
-		local action = "edit " .. utils.escape_filename(file)
-		table.insert(recent_files, { name = name, action = action, section = "Recent files" })
+---Create items for visible text files directly in the working directory.
+---Read a small prefix to exclude binary files without loading whole documents.
+---@return table items Dashboard entries, newest modification first
+function M.create_cwd_files()
+	local cwd = vim.fn.getcwd()
+	local scan = vim.uv.fs_scandir(cwd)
+	if not scan then
+		return {}
 	end
 
-	return recent_files
+	local files = {}
+	while true do
+		local name, kind = vim.uv.fs_scandir_next(scan)
+		if not name then
+			break
+		end
+		if kind == "file" and name:sub(1, 1) ~= "." then
+			local path = vim.fs.joinpath(cwd, name)
+			local stat = vim.uv.fs_stat(path)
+			local fd = vim.uv.fs_open(path, "r", 0)
+			if fd then
+				local prefix = vim.uv.fs_read(fd, 8192, 0)
+				vim.uv.fs_close(fd)
+				if stat and prefix and not prefix:find("%z") then
+					table.insert(files, { name = name, path = path, mtime = stat.mtime })
+				end
+			end
+		end
+	end
+
+	table.sort(files, function(a, b)
+		if a.mtime.sec ~= b.mtime.sec then
+			return a.mtime.sec > b.mtime.sec
+		end
+		if a.mtime.nsec ~= b.mtime.nsec then
+			return a.mtime.nsec > b.mtime.nsec
+		end
+		return a.name < b.name
+	end)
+
+	local items = {}
+	for i = 1, math.min(#files, config.DASHBOARD.MAX_CWD_FILES) do
+		local file = files[i]
+		table.insert(items, {
+			name = config.DASHBOARD.CWD_FILE_KEYS[i] .. ".  " .. file.name,
+			action = function()
+				vim.cmd.edit(vim.fn.fnameescape(file.path))
+			end,
+			section = "Current directory",
+		})
+	end
+	return items
 end
 
 -- Prewarm cache for faster subsequent loads
@@ -187,7 +245,8 @@ function M.create_forge_items()
 				{
 					name = keys[1] .. ".  Set up Forge",
 					action = "ForgeSetup",
-					section = "Forge",
+					section = "Actions",
+					forge_action = true,
 				},
 			}
 		end
@@ -198,22 +257,26 @@ function M.create_forge_items()
 		{
 			name = keys[1] .. ".  Inbox",
 			action = "edit " .. vim.fn.fnameescape(require("core.platform").forge_dir() .. "/inbox.md"),
-			section = "Forge",
+			section = "Actions",
+			forge_action = true,
 		},
 		{
 			name = keys[2] .. ".  Status",
 			action = "ForgeStatus",
-			section = "Forge",
+			section = "Actions",
+			forge_action = true,
 		},
 		{
 			name = keys[3] .. ".  Board",
 			action = "ForgeBoard",
-			section = "Forge",
+			section = "Actions",
+			forge_action = true,
 		},
 		{
 			name = keys[4] .. ".  Move project",
 			action = "ForgeMove",
-			section = "Forge",
+			section = "Actions",
+			forge_action = true,
 		},
 	}
 end
@@ -222,25 +285,15 @@ end
 function M.create_all_items()
 	local items = {}
 
-	-- Add shortcuts (lightweight, always immediate)
-	for _, item in ipairs(M.create_shortcuts()) do
-		table.insert(items, item)
-	end
-
-	-- Add Forge actions
-	for _, item in ipairs(M.create_forge_items()) do
-		table.insert(items, item)
-	end
-
-	-- Load recent files and projects immediately but with optimizations
-	-- Add projects immediately
-	for _, item in ipairs(M.create_projects()) do
-		table.insert(items, item)
-	end
-
-	-- Add recent files immediately
-	for _, item in ipairs(M.create_recent_files()) do
-		table.insert(items, item)
+	-- Order sections around the current work before navigation and housekeeping.
+	for _, create_items in ipairs({
+		M.create_cwd_files,
+		M.create_projects,
+		M.create_recent_files,
+		M.create_shortcuts,
+		M.create_forge_items,
+	}) do
+		vim.list_extend(items, create_items())
 	end
 
 	return items

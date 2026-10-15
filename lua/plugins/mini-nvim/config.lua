@@ -9,7 +9,8 @@ local M = {}
 M.DASHBOARD = {
 	MAX_PROJECTS = 4,
 	MAX_RECENT_FILES = 4,
-	RECENT_FILE_KEYS = { "a", "b", "c", "d" },
+	MAX_CWD_FILES = 5,
+	CWD_FILE_KEYS = { "a", "b", "c", "d", "e" },
 	FORGE_KEYS = { "I", "N", "B", "R" },
 	HEADER_COLOUR = "#4A6D8C", -- Muted blue-black
 	REFRESH_DELAY = 50,
@@ -32,24 +33,21 @@ M.PLUGIN_MANAGER = {
 	CONFIG_DIR = vim.fn.stdpath("config"),
 }
 
--- Sections indexed by mini.starter's auto-indexing hook
--- (Forge is excluded because it uses explicit keymaps)
+-- Explicit shortcuts must be excluded from mini.starter's generated indexing.
 M.INDEXED_SECTIONS = {
-	"Shortcuts",
-	"Projects",
-	"Recent files",
+	"Current directory",
+	"Recent projects",
+	"Actions",
 	"Sessions",
 	"Builtin actions",
 }
 
--- All dashboard sections (display order)
+-- Sections appear in the order their items are generated.
 M.SECTIONS = {
-	"Shortcuts",
-	"Forge",
-	"Projects",
-	"Recent files",
-	"Sessions",
-	"Builtin actions",
+	"Current directory",
+	"Recent projects",
+	"Recent files elsewhere",
+	"Actions",
 }
 
 return M

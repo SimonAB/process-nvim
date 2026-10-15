@@ -63,7 +63,8 @@ function M.setup()
 			end
 		end
 		local prefix = ms and ("⚡ Startup: " .. tostring(ms) .. " ms") or "⚡ Startup: n/a"
-		return ascii ..  "\n" .. prefix
+		return ascii .. "\n" .. prefix .. "\n"
+			.. vim.fn.fnamemodify(vim.fn.getcwd(), ":~") .. " · newest first"
 	end
 
 	-- Exclude hjkl from query filtering so they move the current item; exclude q so
@@ -84,14 +85,11 @@ function M.setup()
 	starter.setup({
 		evaluate_single = true,
 		query_updaters = query_updaters_no_hjkl,
-		header = build_header(),
+		header = build_header,
 		items = items,
 		content_hooks = (function()
 			local hooks = starter.gen_hook or {}
 			return {
-				hooks.aligning and hooks.aligning('center', 'center') or function(x)
-					return x
-				end,
 				hooks.adding_bullet and hooks.adding_bullet() or function(x)
 					return x
 				end,
@@ -99,6 +97,9 @@ function M.setup()
 					"all",
 					config.INDEXED_SECTIONS
 				) or function(x)
+					return x
+				end,
+				hooks.aligning and hooks.aligning('center', 'center') or function(x)
 					return x
 				end,
 				hooks.padding and hooks.padding(3, 2) or function(x)
@@ -161,15 +162,15 @@ function M.setup_keymaps()
 			end
 			local items = (_G.MiniStarter and _G.MiniStarter.config and _G.MiniStarter.config.items) or {}
 			local projects = {}
-			local recent_files = {}
+			local cwd_files = {}
 			local forge_items = {}
 
 			for _, item in ipairs(items) do
-				if item and item.section == "Projects" then
+				if item and item.section == "Recent projects" then
 					table.insert(projects, item)
-				elseif item and item.section == "Recent files" then
-					table.insert(recent_files, item)
-				elseif item and item.section == "Forge" then
+				elseif item and item.section == "Current directory" then
+					table.insert(cwd_files, item)
+				elseif item and item.forge_action then
 					table.insert(forge_items, item)
 				end
 			end
@@ -200,11 +201,11 @@ function M.setup_keymaps()
 				end, { buffer = buf, nowait = true, silent = true, desc = "Open Project " .. i })
 			end
 
-			-- Recent file shortcuts (a-d)
-			for i = 1, math.min(#recent_files, 4) do
-				vim.keymap.set("n", config.DASHBOARD.RECENT_FILE_KEYS[i], function()
-					exec_action(recent_files[i].action)
-				end, { buffer = buf, nowait = true, silent = true, desc = "Open Recent File " .. config.DASHBOARD.RECENT_FILE_KEYS[i] })
+			-- Working-directory file shortcuts (a-e)
+			for i = 1, math.min(#cwd_files, #config.DASHBOARD.CWD_FILE_KEYS) do
+				vim.keymap.set("n", config.DASHBOARD.CWD_FILE_KEYS[i], function()
+					exec_action(cwd_files[i].action)
+				end, { buffer = buf, nowait = true, silent = true, desc = "Open cwd file " .. config.DASHBOARD.CWD_FILE_KEYS[i] })
 			end
 
 			-- Forge shortcuts (I, N, B, S)

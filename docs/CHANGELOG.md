@@ -2,6 +2,9 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### Dashboard
+- Add **Recently modified · cwd**: up to five visible text files directly in the working directory, newest modification first, including files never opened in Neovim. Hidden files, subdirectories and files with NUL bytes in their first 8 KiB are excluded. Shown first under **Current directory**, with the working path above and direct `a`–`e` shortcuts. Follow with **Recent projects** (`1`–`4`), **Recent files elsewhere** (excluding the current directory tree), and **Actions** (Find, Grep, Forge and maintenance).
+
 ### Runtime
 - **Homebrew HEAD**: Config targets Neovim **0.13.0-dev** (`brew install neovim --HEAD`). Minimum remains 0.12+ for `vim.pack`.
 - **`'autoread'`**: Removed the 500 ms `:checktime` poll; rely on OS file watchers with a FocusGained safety net.
