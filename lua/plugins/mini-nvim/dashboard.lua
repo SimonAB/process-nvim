@@ -160,6 +160,20 @@ end
 
 -- Setup dashboard keymaps
 function M.setup_keymaps()
+	local map = vim.keymap.set
+	map("n", "<leader>H", function()
+		local ok, starter = pcall(require, "mini.starter")
+		if not ok then
+			vim.notify("mini.starter not found", vim.log.levels.WARN)
+			return
+		end
+		starter.config.items = dashboard_content.create_all_items()
+		local success, err = pcall(starter.open)
+		if not success then
+			vim.notify("Could not open dashboard: " .. tostring(err), vim.log.levels.ERROR)
+		end
+	end, { desc = "Home dashboard" })
+
 	-- mini.starter sets `filetype=ministarter` with `:noautocmd`, so `FileType`
 	-- never fires. Use `User MiniStarterOpened` (see mini.starter docs).
 	vim.api.nvim_create_autocmd("User", {
