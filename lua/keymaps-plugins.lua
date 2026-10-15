@@ -619,7 +619,14 @@ map("n", "<leader>Ao", safe_cmd("CodeCompanionChat adapter=ollama"), { desc = "A
 
 -- File tree / Telescope / Search
 map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file tree" })
-map("n", "<leader>f", "<cmd>Telescope find_files<CR>", { desc = "Find files" })
+map("n", "<leader>f", function()
+	local ok, picker = pcall(require, "core.modified-file-picker")
+	if not ok then
+		vim.notify("Modified file picker not found", vim.log.levels.WARN)
+		return
+	end
+	picker.open()
+end, { desc = "Find files (newest modified first)" })
 map("n", "<leader>R", "<cmd>Telescope frecency<CR>", { desc = "Find files (by frequency/recency)" })
 map("n", "<leader>Rf", "<cmd>Telescope frecency<CR>", { desc = "Find files (frecency)" })
 map("n", "<leader>Rr", function()

@@ -7,6 +7,9 @@
 - Resolve Obsidian file and attachment pickers from the active client vault rather than the plugin defaults.
 - Prefer `~/SynologyDrive/Software/Forge` for Forge navigation, retaining `FORGE_DIR` and the older location as fallbacks.
 
+### File search
+- `<leader>f` lists files newest-modified first with an empty query; typing uses the existing fuzzy ranking, and clearing the query restores modification order. Existing exclusions and preview settings are retained.
+
 ### Dashboard
 - Add `<leader>H` (Space, then Shift+H) to open the Home dashboard with refreshed file entries.
 - Shorten file labels and the working-directory path to fit approximately 70% of the window width, preserving filename endings and direct shortcuts; refresh on window resizing. Full paths remain attached to file actions.
