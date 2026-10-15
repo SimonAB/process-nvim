@@ -168,61 +168,48 @@ function M.create_recent_files()
 	return items
 end
 
----Create items for visible text files throughout the working directory tree.
----Use ripgrep's ignore-aware walk; only read content after sorting by modification.
----@return table items Dashboard entries, newest modification first
-function M.create_cwd_files()
-	local cwd = vim.fn.getcwd()
-	if vim.fn.executable("rg") ~= 1 then
-		vim.notify("ripgrep is required for dashboard file discovery", vim.log.levels.WARN)
-		return {}
+---Refresh visible dashboards only when their working directory matches the scan.
+---@param cwd string Directory whose background scan completed
+local function refresh_cwd_dashboard(cwd)
+	local dashboard = package.loaded["plugins.mini-nvim.dashboard"]
+	if not dashboard then
+		return
 	end
-	-- Bound discovery time so an unusually large tree cannot stall startup indefinitely.
-	local result = vim.system({ "rg", "--files", "--null" }, { cwd = cwd }):wait(2000)
-	if result.code ~= 0 and result.code ~= 1 then
-		vim.notify("Dashboard file discovery failed or timed out", vim.log.levels.WARN)
-		return {}
-	end
-
-	local files = {}
-	for name in (result.stdout or ""):gmatch("([^%z]+)%z") do
-		local path = vim.fs.joinpath(cwd, name)
-		local stat = vim.uv.fs_stat(path)
-		if stat and stat.type == "file" then
-			table.insert(files, { name = name, path = path, mtime = stat.mtime })
-		end
-	end
-
-	table.sort(files, function(a, b)
-		if a.mtime.sec ~= b.mtime.sec then
-			return a.mtime.sec > b.mtime.sec
-		end
-		if a.mtime.nsec ~= b.mtime.nsec then
-			return a.mtime.nsec > b.mtime.nsec
-		end
-		return a.name < b.name
-	end)
-
-	local items = {}
-	for _, file in ipairs(files) do
-		local fd = vim.uv.fs_open(file.path, "r", 0)
-		if fd then
-			local prefix = vim.uv.fs_read(fd, 8192, 0)
-			vim.uv.fs_close(fd)
-			if prefix and not prefix:find("%z") then
-				local key = config.DASHBOARD.CWD_FILE_KEYS[#items + 1]
-				table.insert(items, {
-					name = key .. ".  " .. file.name,
-					action = function()
-						vim.cmd.edit(vim.fn.fnameescape(file.path))
-					end,
-					section = "Current directory",
-				})
-				if #items >= config.DASHBOARD.MAX_CWD_FILES then
-					break
-				end
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		if vim.api.nvim_win_is_valid(win) then
+			local buf = vim.api.nvim_win_get_buf(win)
+			if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "ministarter" then
+				vim.api.nvim_win_call(win, function()
+					local current = vim.fn.getcwd()
+					if (vim.uv.fs_realpath(current) or vim.fs.normalize(current)) == cwd then
+						dashboard.refresh()
+					end
+				end)
 			end
 		end
+	end
+end
+
+---Create dashboard links immediately from the background discovery cache.
+---@return table items Dashboard entries, newest modification first
+function M.create_cwd_files()
+	local ok, discovery = pcall(require, "core.dashboard-files")
+	if not ok then
+		vim.notify("Dashboard file discovery not found", vim.log.levels.WARN)
+		return {}
+	end
+	local items = {}
+	for i, file in ipairs(discovery.get(vim.fn.getcwd(), refresh_cwd_dashboard)) do
+		if i > config.DASHBOARD.MAX_CWD_FILES then
+			break
+		end
+		table.insert(items, {
+			name = config.DASHBOARD.CWD_FILE_KEYS[i] .. ".  " .. file.name,
+			action = function()
+				vim.cmd.edit(vim.fn.fnameescape(file.path))
+			end,
+			section = "Current directory",
+		})
 	end
 	return items
 end
@@ -306,6 +293,10 @@ end
 
 -- Clear cache function for manual refresh
 function M.clear_cache()
+	local ok, discovery = pcall(require, "core.dashboard-files")
+	if ok then
+		discovery.invalidate()
+	end
 	cached_projects = nil
 	cached_recent_files = nil
 	cache_timestamp = 0

@@ -11,6 +11,7 @@
 - `<leader>f` lists files newest-modified first with an empty query; typing uses the existing fuzzy ranking, and clearing the query restores modification order. Existing exclusions and preview settings are retained.
 
 ### Dashboard
+- Discover recursive dashboard files in the background, with bounded asynchronous metadata checks and a ten-second directory cache. Keep previous results visible during refresh; saves and renames invalidate affected caches, and refreshed shortcuts follow the latest results.
 - Add `<leader>H` (Space, then Shift+H) to open the Home dashboard with refreshed file entries.
 - Shorten file labels and the working-directory path to fit approximately 70% of the window width, preserving filename endings and direct shortcuts; refresh on window resizing. Full paths remain attached to file actions.
 - Add **Recently modified · cwd**: up to five visible text files throughout the working directory tree, newest modification first, including files never opened in Neovim. Ripgrep respects ignore rules and excludes hidden files; files with NUL bytes in their first 8 KiB are excluded. Relative paths distinguish nested files. Shown first under **Current directory**, with the working path above and direct `a`–`e` shortcuts. Follow with **Recent projects** (`1`–`4`), **Recent files elsewhere** (excluding the current directory tree), and **Actions** (Find, Grep, Forge and maintenance).

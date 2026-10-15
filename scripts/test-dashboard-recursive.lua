@@ -15,7 +15,11 @@ vim.uv.fs_close(fd)
 vim.uv.fs_utime(root .. "/top.jl", 10, 10)
 vim.uv.fs_utime(root .. "/nested/deeper/new file.jl", 20, 20)
 vim.cmd.cd(root)
-local items = content.create_cwd_files()
+local items
+assert(vim.wait(3000, function()
+	items = content.create_cwd_files()
+	return #items == 2
+end), "Background discovery completes")
 assert(#items == 2, "Only visible, unignored text files should be shown")
 assert(items[1].name == "a.  nested/deeper/new file.jl", "Nested newest file with relative path")
 assert(items[2].name == "b.  top.jl", "Top-level files retained")

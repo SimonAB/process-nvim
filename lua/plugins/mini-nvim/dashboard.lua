@@ -142,18 +142,23 @@ end
 
 -- Refresh dashboard content
 function M.refresh()
+	local buf = vim.api.nvim_get_current_buf()
+	if not vim.api.nvim_buf_is_valid(buf) or vim.bo[buf].filetype ~= "ministarter" then
+		return
+	end
 	local ok_mini, MiniStarter = pcall(function()
 		return _G.MiniStarter
 	end)
 
 	if ok_mini and MiniStarter then
-		-- Prewarm cache before creating new items for consistent behavior
+		-- Prewarm cache before creating new items for consistent behaviour
 		dashboard_content.prewarm_cache()
 		local new_items = dashboard_content.create_all_items()
 		MiniStarter.config.items = new_items
 
 		if type(MiniStarter.refresh) == "function" then
-			MiniStarter.refresh()
+			MiniStarter.refresh(buf)
+			M.bind_buffer_keys(buf)
 		end
 	end
 end
@@ -174,97 +179,126 @@ function M.setup_keymaps()
 		end
 	end, { desc = "Home dashboard" })
 
-	-- mini.starter sets `filetype=ministarter` with `:noautocmd`, so `FileType`
-	-- never fires. Use `User MiniStarterOpened` (see mini.starter docs).
+	-- mini.starter suppresses FileType, so bind after its explicit open event.
+	local group = vim.api.nvim_create_augroup("DashboardKeymaps", { clear = true })
 	vim.api.nvim_create_autocmd("User", {
+		group = group,
 		pattern = "MiniStarterOpened",
 		nested = true,
 		callback = function()
-			local buf = vim.api.nvim_get_current_buf()
-			if vim.bo[buf].filetype ~= "ministarter" then
-				return
-			end
-			local items = (_G.MiniStarter and _G.MiniStarter.config and _G.MiniStarter.config.items) or {}
-			local projects = {}
-			local cwd_files = {}
-			local forge_items = {}
-
-			for _, item in ipairs(items) do
-				if item and item.section == "Recent projects" then
-					table.insert(projects, item)
-				elseif item and item.section == "Current directory" then
-					table.insert(cwd_files, item)
-				elseif item and item.forge_action then
-					table.insert(forge_items, item)
-				end
-			end
-
-			local function exec_action(action)
-				if type(action) == "string" then
-					local current_buf = vim.api.nvim_get_current_buf()
-					local was_modifiable = vim.bo[current_buf].modifiable
-
-					if not was_modifiable then
-						vim.bo[current_buf].modifiable = true
-					end
-
-					vim.cmd(action)
-
-					if not was_modifiable then
-						vim.bo[current_buf].modifiable = was_modifiable
-					end
-				elseif type(action) == "function" then
-					pcall(action)
-				end
-			end
-
-			-- Project shortcuts (1-9)
-			for i = 1, math.min(#projects, 9) do
-				vim.keymap.set("n", tostring(i), function()
-					exec_action(projects[i].action)
-				end, { buffer = buf, nowait = true, silent = true, desc = "Open Project " .. i })
-			end
-
-			-- Working-directory file shortcuts (a-e)
-			for i = 1, math.min(#cwd_files, #config.DASHBOARD.CWD_FILE_KEYS) do
-				vim.keymap.set("n", config.DASHBOARD.CWD_FILE_KEYS[i], function()
-					exec_action(cwd_files[i].action)
-				end, { buffer = buf, nowait = true, silent = true, desc = "Open cwd file " .. config.DASHBOARD.CWD_FILE_KEYS[i] })
-			end
-
-			-- Forge shortcuts (I, N, B, S)
-			for i = 1, math.min(#forge_items, #config.DASHBOARD.FORGE_KEYS) do
-				vim.keymap.set("n", config.DASHBOARD.FORGE_KEYS[i], function()
-					exec_action(forge_items[i].action)
-				end, { buffer = buf, nowait = true, silent = true, desc = "Forge: " .. config.DASHBOARD.FORGE_KEYS[i] })
-			end
-
-			-- Vim-style movement (mini.starter defaults to arrows / <C-n> / <M-j>).
-			local function map_nav(key, dir, description)
-				vim.keymap.set("n", key, function()
-					pcall(function()
-						local ms = _G.MiniStarter
-						if ms and ms.update_current_item then
-							ms.update_current_item(dir)
-						end
-					end)
-				end, { buffer = buf, nowait = true, silent = true, desc = description })
-			end
-
-			map_nav("h", "prev", "Dashboard: previous item")
-			map_nav("k", "prev", "Dashboard: previous item")
-			map_nav("j", "next", "Dashboard: next item")
-			map_nav("l", "next", "Dashboard: next item")
-
-			vim.keymap.set("n", "q", function()
-				pcall(vim.cmd, "confirm qall")
-			end, { buffer = buf, nowait = true, silent = true, desc = "Dashboard: quit Neovim" })
+			M.bind_buffer_keys(vim.api.nvim_get_current_buf())
 		end,
 	})
 end
 
+---Rebind dashboard actions after asynchronous results change their order.
+---@param buf integer Dashboard buffer
+function M.bind_buffer_keys(buf)
+	if not vim.api.nvim_buf_is_valid(buf) or vim.bo[buf].filetype ~= "ministarter" then
+		return
+	end
+	-- Remove shortcuts whose entries disappeared during a refresh.
+	local keys = vim.list_extend(vim.deepcopy(config.DASHBOARD.CWD_FILE_KEYS), config.DASHBOARD.FORGE_KEYS)
+	for i = 1, 9 do
+		table.insert(keys, tostring(i))
+	end
+	for _, key in ipairs(keys) do
+		pcall(vim.keymap.del, "n", key, { buffer = buf })
+	end
+	local items = (_G.MiniStarter and _G.MiniStarter.config and _G.MiniStarter.config.items) or {}
+	local projects = {}
+	local cwd_files = {}
+	local forge_items = {}
+
+	for _, item in ipairs(items) do
+		if item and item.section == "Recent projects" then
+			table.insert(projects, item)
+		elseif item and item.section == "Current directory" then
+			table.insert(cwd_files, item)
+		elseif item and item.forge_action then
+			table.insert(forge_items, item)
+		end
+	end
+
+	local function exec_action(action)
+		if type(action) == "string" then
+			local current_buf = vim.api.nvim_get_current_buf()
+			local was_modifiable = vim.bo[current_buf].modifiable
+
+			if not was_modifiable then
+				vim.bo[current_buf].modifiable = true
+			end
+
+			vim.cmd(action)
+
+			if not was_modifiable then
+				vim.bo[current_buf].modifiable = was_modifiable
+			end
+		elseif type(action) == "function" then
+			pcall(action)
+		end
+	end
+
+	-- Project shortcuts (1-9)
+	for i = 1, math.min(#projects, 9) do
+		vim.keymap.set("n", tostring(i), function()
+			exec_action(projects[i].action)
+		end, { buffer = buf, nowait = true, silent = true, desc = "Open Project " .. i })
+	end
+
+	-- Working-directory file shortcuts (a-e)
+	for i = 1, math.min(#cwd_files, #config.DASHBOARD.CWD_FILE_KEYS) do
+		vim.keymap.set("n", config.DASHBOARD.CWD_FILE_KEYS[i], function()
+			exec_action(cwd_files[i].action)
+		end, { buffer = buf, nowait = true, silent = true, desc = "Open cwd file " .. config.DASHBOARD.CWD_FILE_KEYS[i] })
+	end
+
+	-- Forge shortcuts (I, N, B, R)
+	for i = 1, math.min(#forge_items, #config.DASHBOARD.FORGE_KEYS) do
+		vim.keymap.set("n", config.DASHBOARD.FORGE_KEYS[i], function()
+			exec_action(forge_items[i].action)
+		end, { buffer = buf, nowait = true, silent = true, desc = "Forge: " .. config.DASHBOARD.FORGE_KEYS[i] })
+	end
+
+	-- Vim-style movement (mini.starter defaults to arrows / <C-n> / <M-j>).
+	local function map_nav(key, dir, description)
+		vim.keymap.set("n", key, function()
+			pcall(function()
+				local ms = _G.MiniStarter
+				if ms and ms.update_current_item then
+					ms.update_current_item(dir)
+				end
+			end)
+		end, { buffer = buf, nowait = true, silent = true, desc = description })
+	end
+
+	map_nav("h", "prev", "Dashboard: previous item")
+	map_nav("k", "prev", "Dashboard: previous item")
+	map_nav("j", "next", "Dashboard: next item")
+	map_nav("l", "next", "Dashboard: next item")
+
+	vim.keymap.set("n", "q", function()
+		pcall(vim.cmd, "confirm qall")
+	end, { buffer = buf, nowait = true, silent = true, desc = "Dashboard: quit Neovim" })
+end
+
 -- Setup autocommands
 function M.setup_autocommands()
+	local cache_group = vim.api.nvim_create_augroup("DashboardFileCache", { clear = true })
+	vim.api.nvim_create_autocmd({ "BufWritePost", "BufFilePost" }, {
+		group = cache_group,
+		callback = function(args)
+			if not vim.api.nvim_buf_is_valid(args.buf) then
+				return
+			end
+			local ok, discovery = pcall(require, "core.dashboard-files")
+			if ok then
+				-- Renames can affect both the old and new directory trees.
+				local path = args.event == "BufWritePost" and vim.api.nvim_buf_get_name(args.buf) or nil
+				discovery.invalidate(path)
+			end
+		end,
+	})
 	-- Combined VimEnter autocmd
 	vim.api.nvim_create_autocmd("VimEnter", {
 		once = true,
