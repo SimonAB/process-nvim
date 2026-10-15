@@ -168,33 +168,28 @@ function M.create_recent_files()
 	return items
 end
 
----Create items for visible text files directly in the working directory.
----Read a small prefix to exclude binary files without loading whole documents.
+---Create items for visible text files throughout the working directory tree.
+---Use ripgrep's ignore-aware walk; only read content after sorting by modification.
 ---@return table items Dashboard entries, newest modification first
 function M.create_cwd_files()
 	local cwd = vim.fn.getcwd()
-	local scan = vim.uv.fs_scandir(cwd)
-	if not scan then
+	if vim.fn.executable("rg") ~= 1 then
+		vim.notify("ripgrep is required for dashboard file discovery", vim.log.levels.WARN)
+		return {}
+	end
+	-- Bound discovery time so an unusually large tree cannot stall startup indefinitely.
+	local result = vim.system({ "rg", "--files", "--null" }, { cwd = cwd }):wait(2000)
+	if result.code ~= 0 and result.code ~= 1 then
+		vim.notify("Dashboard file discovery failed or timed out", vim.log.levels.WARN)
 		return {}
 	end
 
 	local files = {}
-	while true do
-		local name, kind = vim.uv.fs_scandir_next(scan)
-		if not name then
-			break
-		end
-		if kind == "file" and name:sub(1, 1) ~= "." then
-			local path = vim.fs.joinpath(cwd, name)
-			local stat = vim.uv.fs_stat(path)
-			local fd = vim.uv.fs_open(path, "r", 0)
-			if fd then
-				local prefix = vim.uv.fs_read(fd, 8192, 0)
-				vim.uv.fs_close(fd)
-				if stat and prefix and not prefix:find("%z") then
-					table.insert(files, { name = name, path = path, mtime = stat.mtime })
-				end
-			end
+	for name in (result.stdout or ""):gmatch("([^%z]+)%z") do
+		local path = vim.fs.joinpath(cwd, name)
+		local stat = vim.uv.fs_stat(path)
+		if stat and stat.type == "file" then
+			table.insert(files, { name = name, path = path, mtime = stat.mtime })
 		end
 	end
 
@@ -209,15 +204,25 @@ function M.create_cwd_files()
 	end)
 
 	local items = {}
-	for i = 1, math.min(#files, config.DASHBOARD.MAX_CWD_FILES) do
-		local file = files[i]
-		table.insert(items, {
-			name = config.DASHBOARD.CWD_FILE_KEYS[i] .. ".  " .. file.name,
-			action = function()
-				vim.cmd.edit(vim.fn.fnameescape(file.path))
-			end,
-			section = "Current directory",
-		})
+	for _, file in ipairs(files) do
+		local fd = vim.uv.fs_open(file.path, "r", 0)
+		if fd then
+			local prefix = vim.uv.fs_read(fd, 8192, 0)
+			vim.uv.fs_close(fd)
+			if prefix and not prefix:find("%z") then
+				local key = config.DASHBOARD.CWD_FILE_KEYS[#items + 1]
+				table.insert(items, {
+					name = key .. ".  " .. file.name,
+					action = function()
+						vim.cmd.edit(vim.fn.fnameescape(file.path))
+					end,
+					section = "Current directory",
+				})
+				if #items >= config.DASHBOARD.MAX_CWD_FILES then
+					break
+				end
+			end
+		end
 	end
 	return items
 end
