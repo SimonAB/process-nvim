@@ -45,7 +45,8 @@ Complete keymap reference for process-nvim, organised by functionality.
 
 ### File Navigation
 ```vim
-<Leader>f       " Find files (Telescope)
+<Leader>H       " Home dashboard
+<Leader>f       " Find files (newest modified first; fuzzy search when typing)
 <Leader>R       " Find files by frequency/recency (Telescope frecency)
 <Leader>Rf      " Find files (frecency)
 <Leader>Rr      " Refresh frecency database
@@ -53,6 +54,8 @@ Complete keymap reference for process-nvim, organised by functionality.
 <Leader>Rb      " Rebuild frecency database
 <Leader>e       " Toggle file explorer (NvimTree)
 ```
+
+For dashboard-only `a`–`e` file shortcuts and `1`–`4` project shortcuts, see [Dashboard and file search](/guide/dashboard-and-files). `<Leader>H` is distinct from lowercase `<Leader>h` (clear search highlighting).
 
 ### Forge (kanban / projects)
 Finder-tag kanban workflow (see `lua/plugins/forge-nvim.lua`):

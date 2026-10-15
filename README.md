@@ -9,7 +9,7 @@ process-nvim is a Neovim configuration for research writing and scientific compu
 ### Document processing
 
 - LaTeX: VimTeX, bidirectional SyncTeX (Skim)
-- Markdown: live preview, Obsidian, cursor peeks for images, PDFs, and web links
+- Markdown: live preview, Obsidian, cursor peeks for images, PDFs, and web links; filename labels for empty image descriptions on save
 - Quarto: code execution (R, Python, Julia)
 - Typst: preview and CLI compile/watch (`typst c` / `typst w`)
 
@@ -25,6 +25,8 @@ process-nvim is a Neovim configuration for research writing and scientific compu
 - Completion: blink.cmp (with blink.lib)
 - Terminal: code-block detection
 - Git: GitSigns, LazyGit
+- Dashboard: recursive recent text files, background discovery and directory caching
+- File search: newest-modified first with `<leader>f`, fuzzy matching as you type
 
 ## Requirements
 
@@ -79,7 +81,8 @@ Plugins install automatically on first launch (vim.pack). Mason prompts for lang
 
 | Key                        | Action                 |
 | -------------------------- | ---------------------- |
-| `<leader>f`                | Find files (Telescope) |
+| `<leader>H`                | Home dashboard |
+| `<leader>f`                | Find files (newest modified first) |
 | `<leader>g`                | Live grep in project   |
 | `<leader>R` / `<leader>Rf` | Find files (frecency)  |
 | `<leader>e`                | Toggle file explorer   |
@@ -258,3 +261,8 @@ See [CHANGELOG](docs/CHANGELOG.md) for complete version history.
 Provided as-is for educational and personal use.
 
 **Note**: Requires Neovim 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum for vim.pack). Upgrade older Neovim installations before using this configuration; `vim.pack` is the only supported plugin manager.
+
+## Navigation and Markdown guides
+
+- [Dashboard and file search](docs/guide/dashboard-and-files.md) — `a`–`e` for recent text files, `1`–`4` for projects, and width-aware labels.
+- [Markdown save-time cleanup](docs/guide/markdown-editing.md) — fill empty image descriptions while preserving authored text and code.

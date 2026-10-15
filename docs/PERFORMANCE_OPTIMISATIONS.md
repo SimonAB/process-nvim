@@ -2,9 +2,9 @@
 
 ## Overview
 
-This document outlines the performance optimisations implemented to improve Neovim startup time. The optimisations resulted in a **17ms improvement** (from 105ms to 88ms), representing a **16% reduction** in startup time.
+This page records current file-discovery behaviour alongside earlier startup measurements. The historical startup benchmark reported a **17 ms improvement** (from 105 ms to 88 ms); those figures have not been remeasured for the current plugin set.
 
-## Performance Results
+## Historical startup results
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
@@ -59,46 +59,30 @@ end, 100)
 
 **Impact**: Reduced plugin loading overhead by 20%
 
-### 3. Dashboard Content Caching
+### 3. Background dashboard discovery and caching
 
-**Problem**: Recent files and projects regenerated on every startup
-**Solution**: Implement intelligent caching with 5-minute TTL
+Recursive recent files are discovered by `core.dashboard-files` using `rg --files --null`. Discovery runs asynchronously, followed by a pool of at most 16 outstanding metadata requests. Leading candidates are checked for readable text until five files are found. No synchronous per-file walk runs on the editor thread.
 
-```lua
--- Cache for recent projects and files
-local cached_projects = nil
-local cached_recent_files = nil
-local cache_timestamp = 0
-local CACHE_DURATION = 300000 -- 5 minutes
+Results are cached for ten seconds per directory. Concurrent requests share a scan, and previous results remain available during refresh. Saves and renames invalidate caches; generation checks prevent an invalidated scan from publishing stale results. Old completed entries are pruned with a target of eight cached directories; in-flight work may temporarily exceed that count. File labels are resized independently of discovery.
 
-function M.get_recent_projects(limit)
-    -- Check cache first
-    local current_time = vim.loop.now()
-    if cached_projects and (current_time - cache_timestamp) < CACHE_DURATION then
-        return vim.list_slice(cached_projects, 1, limit)
-    end
-    -- ... generate and cache
-end
-```
+A local synthetic benchmark with 3,000 text files measured:
 
-**Impact**: Eliminated repeated file system scans
+| Operation | Time |
+| --- | --- |
+| Previous blocking dashboard scan | 38.55 ms |
+| New cold request returning to the caller | 0.89 ms |
+| Background results available after the request | 31.46 ms |
+| Cached request | 0.17 ms |
 
-### 4. Optimised File Processing
+These are filesystem-cache-dependent local measurements, not whole-editor startup timings or performance guarantees. Exact modification ordering still requires metadata for every discovered candidate, and sorting remains on the main thread after asynchronous collection. The main benefit is keeping discovery and file I/O off the interactive path.
 
-**Problem**: Processing all oldfiles (potentially thousands)
-**Solution**: Limit processing to first 100 files
+### 4. File search and Markdown cleanup
 
-```lua
--- OPTIMISED: Limit the number of oldfiles to process
-local max_oldfiles = math.min(#oldfiles, 100)
+`<leader>f` keeps Telescope's standard discovery and exclusions. The picker-session sorter caches modification-date scores per candidate, avoiding repeated metadata reads when the query is cleared. Non-empty queries delegate directly to the configured native FZF sorter. Initial metadata reads in this picker remain synchronous; very large or slow directory trees can still cost time.
 
-for i = 1, max_oldfiles do
-    local f = oldfiles[i]
-    -- ... process file
-end
-```
+Markdown image-label cleanup uses Neovim's incremental Markdown parser and edits only missing descriptions. It starts no Python process, invokes no language model and makes no network request. It runs on save; large documents still incur parser work.
 
-**Impact**: Reduced file processing overhead
+For recent project history, the existing dashboard helper checks at most ten oldfile entries and uses a two-minute in-memory cache. This is separate from the ten-second recursive file cache.
 
 ### 5. Consolidated Autocommands
 

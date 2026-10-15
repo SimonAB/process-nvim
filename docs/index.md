@@ -8,7 +8,9 @@ hero:
 
 features:
   - title: Document workflows
-    details: LaTeX (VimTeX, SyncTeX), Markdown, Obsidian, Quarto, and Typst — preview and compile from Neovim.
+    details: LaTeX (VimTeX, SyncTeX), Markdown, Obsidian, Quarto, and Typst — preview, compile, and fill empty Markdown image labels on save.
+  - title: Dashboard and file search
+    details: Recursive recent files, background discovery, and newest-modified-first search with fuzzy matching as you type.
   - title: Media and link peeks
     details: Cursor peeks for images, PDFs, and HTTP(S) links in Markdown. Esc dismisses; Enter opens externally.
   - title: Scientific computing
@@ -64,7 +66,8 @@ Further reading:
 
 ```vim
 " Navigation and search
-<Space>f            " Find files
+<Space>H            " Home dashboard
+<Space>f            " Find files, newest modified first
 <Space>g            " Grep in project
 <Space>e            " Toggle file tree
 
@@ -89,6 +92,8 @@ K                   " Hover documentation
 
 - [Installation Guide](/INSTALLATION_GUIDE)
 - [Quick Start](/quickstart)
+- [Dashboard and file search](/guide/dashboard-and-files)
+- [Markdown save-time cleanup](/guide/markdown-editing)
 - [Media and link peeks](/guide/media-peeks)
 - [Keymaps Reference](/reference/keymaps)
 - [LSP Setup](/advanced/lsp-setup)

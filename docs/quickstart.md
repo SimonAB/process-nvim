@@ -131,7 +131,11 @@ nvim
 2. `blink.cmp` may compile its native fuzzy matcher (needs Cargo; ~30 seconds)
 3. System theme detected and applied
 4. Mason prompts for language server installation
-5. Dashboard displays recent files
+5. Dashboard shows the current directory; recursive recent text files arrive in the background
+
+## Dashboard
+
+Press `<Space>H` to return Home. Use `a`–`e` for the newest text files across the working directory tree, `1`–`4` for recent projects, and `j`/`k` plus Enter for other entries. Labels adjust to the window width. See [Dashboard and file search](/guide/dashboard-and-files) for cache behaviour and search ordering.
 
 ## Essential Keymaps
 
@@ -139,7 +143,8 @@ nvim
 
 ```vim
 <Space>              " Show all available commands (Which-Key)
-<Space>f             " Find files (Telescope)
+<Space>H             " Home dashboard
+<Space>f             " Find files (newest modified first; fuzzy search when typing)
 <Space>g             " Live grep in project
 <Space>e             " Toggle file explorer
 <Ctrl-h/j/k/l>       " Navigate between windows
@@ -310,11 +315,13 @@ Do **not** load `soul` or `ulem`; lua-ul with the `[soul]` option gives you the 
 
 ## Obsidian Integration
 
-Configure Obsidian vault path in `lua/keymaps-plugins.lua`:
+The vault resolver in `lua/core/platform.lua` uses `OBSIDIAN_VAULT_PATH` first, then `~/Notebook`, followed by legacy locations including `~/SynologyDrive/Databases/Notebook`. Obsidian pickers use the active client vault. To override the path before starting Neovim:
 
-```lua
-local obsidian_path = "/Users/<username>/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebook"
+```bash
+export OBSIDIAN_VAULT_PATH="/path/to/your/vault"
 ```
+
+Empty inline image descriptions are filled from filename stems on save. See [Markdown save-time cleanup](/guide/markdown-editing) for examples and exclusions.
 
 ### Obsidian Keymaps
 

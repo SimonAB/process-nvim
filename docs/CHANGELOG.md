@@ -2,6 +2,9 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### Documentation
+- Add dashboard/file-search and Markdown editing guides to the website; update the README, quick start, keymaps, installation, performance and troubleshooting pages for the current behaviour.
+
 ### Path repairs
 - Prefer `~/Notebook` in Neovim, with `~/SynologyDrive/Databases/Notebook` as a fallback and the daily snapshot script default; retain environment overrides and legacy locations.
 - Resolve Obsidian file and attachment pickers from the active client vault rather than the plugin defaults.

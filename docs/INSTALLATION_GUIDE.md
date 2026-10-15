@@ -553,17 +553,13 @@ yay -S obsidian
 paru -S obsidian
 ```
 
-Configure the Obsidian workspace path in `lua/plugins/obsidian-nvim.lua`:
-```lua
-obsidian.setup({
-  workspaces = {
-    {
-      name = "notebook",
-      path = "/path/to/your/vault",
-    },
-  },
-})
+The workspace path is resolved by `lua/core/platform.lua`. `OBSIDIAN_VAULT_PATH` overrides the defaults; otherwise `~/Notebook` is preferred, followed by legacy locations including `~/SynologyDrive/Databases/Notebook`.
+
+```bash
+export OBSIDIAN_VAULT_PATH="/path/to/your/vault"
 ```
+
+The active client vault also supplies the Obsidian file and attachment pickers. Markdown image labels are filled on save using the `markdown` and `markdown_inline` Treesitter parsers; see [Markdown save-time cleanup](/guide/markdown-editing).
 
 ### Database Tools
 

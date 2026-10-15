@@ -70,6 +70,27 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 - Use `<leader>Kp` to start preview
 - Check browser permissions for local file access
 
+### Dashboard and file search
+
+#### Dashboard files appear after a short delay
+- Recursive discovery runs in the background. The first visit has no cached files; subsequent refreshes retain the previous results until the new scan completes.
+- Check that `rg` is available with `:echo executable('rg')`. Ripgrep excludes hidden and ignored paths.
+- The dashboard uses a ten-second cache per directory. After external edits, reopen Home with `<leader>H` once the cache has expired. Neovim saves and renames invalidate caches automatically.
+- A ripgrep failure or two-second discovery timeout is reported in `:messages`. Very large directory trees still require metadata checks for modification ordering.
+
+#### File picker ordering differs from the dashboard
+- `<leader>f` sorts an empty query by modification time, then uses fuzzy ranking while typing. Clear the query to restore date order; reopen the picker to refresh file timestamps.
+- Ordinary `:Telescope find_files` uses its standard sorter. `<leader>Rf` uses opening frequency and recency, not filesystem timestamps.
+- The picker excludes common media/archive extensions. The dashboard uses an initial-byte text check, so their file lists can differ.
+
+### Markdown image descriptions
+
+#### Empty image brackets remain after saving
+- Restart Neovim after updating the configuration, then check `:autocmd MarkdownImageAlt`.
+- Check `:messages` for a missing `markdown` or `markdown_inline` Treesitter parser.
+- The rule applies to inline Markdown images in `.md`, `.markdown`, `.Rmd` and `.qmd` files. It skips existing descriptions, code examples, comments, frontmatter and read-only buffers.
+- Reference-style images and Obsidian wikilink embeds are left unchanged. See [Markdown save-time cleanup](/guide/markdown-editing).
+
 ### Media and link peeks
 
 #### No image or PDF popup

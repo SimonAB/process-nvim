@@ -378,6 +378,7 @@ end, { desc = "Description" })
 
 | Prefix | Group | Example |
 |--------|-------|---------|
+| `<leader>H` | Home dashboard (direct action) | `<leader>H` = Open Home with refreshed entries |
 | `<leader>B` | Buffer operations | `<leader>Bn` = Next buffer |
 | `<leader>C` | Configuration | `<leader>Cs` = Reload configuration; `<leader>Cr` = `:restart`; `<leader>Cd` = `:detach!` |
 | `<leader>F` | Forge (kanban / projects) | `<leader>Fs` = Status |
@@ -657,3 +658,12 @@ If you encounter patterns not covered here or need clarification:
 - Startup cache hygiene (`core.cache-hygiene`) prunes undofiles older than 90 days, truncates oversized LSP logs, and removes leftover `startup.log`; media caches live under `~/.cache/nvim/vim-ui-img/`.
 - `BufWritePre` in `config.lua` enforces two empty lines at EOF on save.
 - Custom lualine text must be `stl_escape`d so `%` is not parsed as a statusline format item; visual word count uses `vim.fn.wordcount().visual_words`, not `substitute(..., "gn")`.
+
+## Navigation and Markdown maintenance
+
+- `<leader>H` is a direct Home action, not a which-key prefix group. Preserve lowercase `<leader>h` for clearing search highlighting.
+- Dashboard file discovery lives in `lua/core/dashboard-files.lua`: recursive ripgrep enumeration, asynchronous file checks, a ten-second directory cache and save/rename invalidation. Keep rendering and shortcut rebinding in the mini.nvim dashboard modules; late results must not replace a different directory's dashboard.
+- Dashboard labels use `dashboard-width.lua` and approximately 70% of the window width. Truncation affects labels, never the paths stored in actions.
+- `<leader>f` uses `core.modified-file-picker`: modification-date scores for an empty query, the existing native fuzzy sorter for typed queries. Preserve normal Telescope discovery, exclusions and preview options.
+- `core.markdown-image-alt` fills empty inline image descriptions from filename stems on save. Preserve authored descriptions and link targets; use Markdown Treesitter structure to exclude code, frontmatter and comments. Keep it local and independent of model calls.
+- Relevant checks are documented in `scripts/README.md`. Website source and navigation live in `docs/` and `docs/.vitepress/config.mjs`; run `npm run docs:build` after documentation changes.

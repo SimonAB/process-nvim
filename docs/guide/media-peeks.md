@@ -32,6 +32,8 @@ Leader keys:
 
 PDF pages are cached under `~/.cache/nvim/vim-ui-img/` (about 24 hours). Startup also prunes old undo history and oversized logs.
 
+Saving Markdown documents fills empty `![](...)` image descriptions from filename stems. Existing descriptions and code examples are preserved; see [Markdown save-time cleanup](/guide/markdown-editing).
+
 ## Website links
 
 Move the cursor onto a line that contains an `http(s)` URL (Markdown link, bare URL, or `www.…`). The peek shows the page title and description when they can be parsed from the HTML.
