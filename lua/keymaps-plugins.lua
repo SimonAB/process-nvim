@@ -25,28 +25,18 @@ local function safe_cmd(cmd)
 	end
 end
 
----Return the Obsidian vault path from obsidian.nvim config if available.
+---Return the active Obsidian vault path if the client is configured.
 ---@return string|nil
 local function get_obsidian_vault_path()
 	local ok, obsidian = pcall(require, "obsidian")
 	if not ok then
 		return nil
 	end
-	if not obsidian.config then
+	local has_client, client = pcall(obsidian.get_client)
+	if not has_client then
 		return nil
 	end
-	local workspaces = obsidian.config.workspaces
-	if type(workspaces) ~= "table" then
-		return nil
-	end
-	local workspace = workspaces[1]
-	if type(workspace) ~= "table" then
-		return nil
-	end
-	if type(workspace.path) ~= "string" then
-		return nil
-	end
-	return workspace.path
+	return tostring(client:vault_root())
 end
 
 local function create_terminal(cmd, opts)

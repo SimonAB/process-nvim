@@ -63,6 +63,7 @@ resolve_vault_path() {
 
 	local candidates=()
 	candidates=(
+		"${HOME}/SynologyDrive/Databases/Notebook"
 		"${HOME}/Databases/Notebook"
 		"${HOME}/Databases"
 	)

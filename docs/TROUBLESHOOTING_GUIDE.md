@@ -63,7 +63,7 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 
 #### Obsidian vault: slow gitsigns or huge `git status`
 - Large vaults with many unstaged notes keep gitsigns busy.
-- Optional: `scripts/daily-vault-commit.sh` (commit/push on a schedule; `install` for launchd on macOS). Set `OBSIDIAN_VAULT_PATH` if the vault is not the default iCloud Notebook path.
+- Optional: `scripts/daily-vault-commit.sh` (commit/push on a schedule; `install` for launchd on macOS). The script’s vault resolver prefers `~/SynologyDrive/Databases/Notebook`, then legacy locations. Set `OBSIDIAN_VAULT_PATH` to override it.
 
 #### Markdown preview not working
 - Ensure the plugin is built: check `~/.local/share/nvim/site/pack/core/opt/markdown-preview.nvim/app/bin/`

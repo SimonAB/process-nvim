@@ -114,8 +114,8 @@ local function first_existing_dir(candidates)
 end
 
 ---Resolve the Obsidian vault path for this machine.
----Prefers `OBSIDIAN_VAULT_PATH`, then `~/Databases/Notebook` on all platforms,
----with legacy fallbacks (iCloud on macOS, old Linux locations).
+---Prefers `OBSIDIAN_VAULT_PATH`, then `~/Notebook`,
+---with legacy fallbacks (Databases, iCloud on macOS, old Linux locations).
 ---@return string
 function M.obsidian_vault_path()
 	local env_path = vim.env.OBSIDIAN_VAULT_PATH
@@ -124,6 +124,8 @@ function M.obsidian_vault_path()
 	end
 
 	local candidates = {
+		"~/Notebook",
+		"~/SynologyDrive/Databases/Notebook",
 		"~/Databases/Notebook",
 		"~/Databases",
 	}
@@ -155,10 +157,8 @@ function M.forge_dir()
 	if env_path and env_path ~= "" then
 		return vim.fn.expand(env_path)
 	end
-	if M.is_macos() then
-		return vim.fn.expand("~/Documents/Forge")
-	end
-	return vim.fn.expand("~/Documents/Forge")
+	local candidates = { "~/SynologyDrive/Software/Forge", "~/Documents/Forge" }
+	return first_existing_dir(candidates) or vim.fn.expand("~/Documents/Forge")
 end
 
 ---Build command for telescope-fzf-native.nvim (toolchain differs by OS).

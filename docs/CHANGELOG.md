@@ -2,6 +2,11 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### Path repairs
+- Prefer `~/Notebook` in Neovim, with `~/SynologyDrive/Databases/Notebook` as a fallback and the daily snapshot script default; retain environment overrides and legacy locations.
+- Resolve Obsidian file and attachment pickers from the active client vault rather than the plugin defaults.
+- Prefer `~/SynologyDrive/Software/Forge` for Forge navigation, retaining `FORGE_DIR` and the older location as fallbacks.
+
 ### Dashboard
 - Add `<leader>H` (Space, then Shift+H) to open the Home dashboard with refreshed file entries.
 - Shorten file labels and the working-directory path to fit approximately 70% of the window width, preserving filename endings and direct shortcuts; refresh on window resizing. Full paths remain attached to file actions.
