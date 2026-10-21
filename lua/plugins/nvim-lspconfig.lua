@@ -68,14 +68,7 @@ local function on_attach(client, bufnr)
 	vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, opts)
 	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
 	
-	-- Hover keymap - NOTE: Currently not working with LanguageServer.jl (upstream issue)
-	-- The server doesn't respond to hover requests. Use 'gd' for go-to-definition instead.
-	vim.keymap.set("n", "K", function()
-		vim.notify("Hover not available: LanguageServer.jl doesn't respond to hover requests.", vim.log.levels.WARN)
-		vim.notify("Use 'gd' for go-to-definition, or check Julia docs manually.", vim.log.levels.INFO)
-		-- Still try hover in case it gets fixed in future versions
-		vim.lsp.buf.hover()
-	end, opts)
+	vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
 	
 	vim.keymap.set("n", "<localleader>rn", vim.lsp.buf.rename, opts)
 	vim.keymap.set("n", "<localleader>ca", vim.lsp.buf.code_action, opts)
@@ -123,34 +116,21 @@ end
 
 -- Julia LSP setup (bypass Mason due to current instability)
 -- Uses @nvim-lspconfig environment which needs LanguageServer.jl installed
---
--- KNOWN LIMITATION: Hover (K key) does not work with LanguageServer.jl
--- The server accepts hover requests but never responds. This is a known upstream issue.
--- Workarounds: Use 'gd' for go-to-definition, or check Julia documentation manually.
+---Build the documented launcher without depending on constructor argument order.
+---@param project_env string Environment containing LanguageServer.jl
+---@param root_dir string Project to analyse
+---@return string[]
 local function build_julia_lsp_cmd(project_env, root_dir)
-  -- Escape the root_dir path for use in Julia string (handle both Unix and Windows paths)
-  local escaped_root = root_dir:gsub("\\", "\\\\"):gsub('"', '\\"'):gsub("'", "\\'")
-  
-  return {
-    "julia",
-    "--project=" .. project_env,
-    "--startup-file=no",
-    "--history-file=no",
-    "-e",
-    string.format([[
-      try
-        using LanguageServer
-        project_path = "%s"
-        server = LanguageServer.LanguageServerInstance(stdin, stdout, project_path, "")
-        run(server)
-      catch err
-        Base.println(stderr, err)
-        Base.println(stderr, sprint(showerror, err, catch_backtrace()))
-        flush(stderr)
-        exit(1)
-      end
-    ]], escaped_root),
-  }
+	-- ARGS carries paths literally, including spaces, quotes and Julia's dollar syntax.
+	return {
+		"julia",
+		"--project=" .. project_env,
+		"--startup-file=no",
+		"--history-file=no",
+		"-e",
+		"using LanguageServer; LanguageServer.runserver()",
+		root_dir,
+	}
 end
 
 -- Note: Julia LSP is now started via autocommand below
@@ -368,8 +348,8 @@ vim.api.nvim_create_user_command('JuliaLspHover', function()
 end, { desc = "Test Julia LSP hover manually" })
 
 -- Autocommand to start julials when Julia files are opened
--- vim.lsp.enable() registers the config but doesn't auto-start, so we need this
 vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("JuliaLanguageServer", { clear = true }),
   pattern = "julia",
   callback = function(args)
     -- Check if julials is already attached to this buffer
