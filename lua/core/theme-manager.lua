@@ -447,7 +447,7 @@ function ThemeManager.apply_global_opacity(opts)
 	vim.o.pumblend = blend -- Transparency for popup menus/completion (enables blur if terminal supports it)
 	ensure_transparent_highlights()
 	-- Per-window `winblend` touches every split; skip while the OS window is unfocused so
-	-- transparent hosts (e.g. Ghostty) do not keep recompositing the buffer cursor cell.
+	-- transparent hosts do not keep recompositing the buffer cursor cell.
 	if opts.apply_window_blends ~= false and vim.g._nvim_os_window_focused ~= 0 then
 		ThemeSettings.apply_all_window_blends()
 	end
@@ -781,7 +781,7 @@ function ThemeManager.setup_opacity_autocmds()
 		group = group,
 		callback = function(event)
 			-- Skip while the OS window is unfocused: repeated blends + redraws aggravate cursor
-			-- flicker in transparent terminals (e.g. Ghostty) without improving the UI.
+			-- flicker in transparent terminals without improving the UI.
 			if vim.g._nvim_os_window_focused == 0 then
 				return
 			end

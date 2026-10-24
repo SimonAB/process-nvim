@@ -215,7 +215,7 @@ local function create_optimised_autocmds()
     group = augroup,
     desc = "Unfocused: trim Lualine segments, pause GUI cursor blink (idempotent for focus spam)",
     callback = function()
-      -- Ghostty / some hosts can emit repeated FocusLost; avoid tearing Lualine down repeatedly.
+      -- Some hosts emit repeated FocusLost; avoid tearing Lualine down repeatedly.
       if vim.g._nvim_os_window_focused == 0 then
         return
       end

@@ -9,8 +9,8 @@ Installation instructions for process-nvim on macOS and Arch Linux.
   - Arch Linux (tested on latest stable)
 - **Neovim**: 0.13-dev (Homebrew HEAD recommended; 0.12+ minimum for vim.pack)
 - **Terminal**: 
-  - **macOS**: [Ghostty](https://github.com/ghostty-org/ghostty), [iTerm2](https://iterm2.com/), or [Warp](https://www.warp.dev/) (256-colour support)
-  - **Arch Linux**: Alacritty, Kitty, or any terminal with 256-colour support
+  - **macOS**: [Rex](https://www.superlogical.com/rex) (true colour). Skim inverse search raises the Rex session that owns Neovim.
+  - **Arch Linux**: Alacritty, Kitty, or any terminal with 256-colour support. On Hyprland, Zathura forward search focuses Ghostty.
 - **Internet Connection**: Required for plugin installation
 
 ## Prerequisites
@@ -239,7 +239,7 @@ Or configure manually in Skim → **Preferences** → **Sync** → **PDF-TeX Syn
 - **Arguments**: `--headless -c "VimtexInverseSearch %line '%file'"`
 
 In Skim:
-- Cmd+Shift+Click for inverse search (PDF → Neovim)
+- Cmd+Shift+Click for inverse search (PDF → Neovim). Rex is raised on the session and pane that own that Neovim. Forward search (`\lv`) leaves focus in the terminal.
 
 ##### Arch Linux: Configure Zathura
 
@@ -747,20 +747,14 @@ paru -S nerd-fonts-hack
 **Recommended terminals**:
 
 **macOS**:
-- [Ghostty](https://github.com/ghostty-org/ghostty) - Fast, native macOS terminal
-- [iTerm2](https://iterm2.com/) - Feature-rich terminal with extensive customisation
-- [Warp](https://www.warp.dev/) - Modern terminal with AI features
+- [Rex](https://www.superlogical.com/rex) — the terminal this configuration uses. Inverse search activates it by bundle id `com.superlogical.rex`.
 
 **Arch Linux**:
 - [Alacritty](https://github.com/alacritty/alacritty) - Fast, GPU-accelerated terminal (`sudo pacman -S alacritty`)
 - [Kitty](https://sw.kovidgoyal.net/kitty/) - Feature-rich terminal (`sudo pacman -S kitty`)
 - [WezTerm](https://wezfurlong.org/wezterm/) - Cross-platform terminal (`sudo pacman -S wezterm`)
 
-**Terminal.app** (macOS): Built-in terminal has 256-colour support but requires configuration:
-1. Terminal → Preferences → Profiles
-2. Select or create a profile
-3. Advanced tab → Set "Declare terminal as:" to `xterm-256color`
-4. Text tab → Install a Nerd Font for proper icon display
+Terminal.app is not the macOS terminal for this configuration. Inverse search activates Rex, and Terminal.app does not draw Kitty graphics.
 
 ## Updating
 

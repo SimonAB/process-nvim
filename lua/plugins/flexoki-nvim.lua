@@ -2,7 +2,7 @@
 ---
 ---This module is loaded by the phased plugin loader (`core/plugin-loader.lua`).
 ---It configures Flexoki to keep backgrounds transparent so the UI inherits the
----terminal backdrop (Ghostty is transparent in this setup).
+---terminal backdrop. The host terminal (Rex on macOS) shows through.
 ---
 ---The active colourscheme names are `flexoki-dark` and `flexoki-light`.
 ---

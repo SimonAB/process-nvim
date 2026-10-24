@@ -45,7 +45,7 @@ Further reading:
 
 | Tool | Typical entry points |
 | --- | --- |
-| LaTeX | `\ll` compile, `\lv` forward search |
+| LaTeX | `\ll` compile, `\lv` forward search. Skim inverse search raises Rex. |
 | Markdown | `<Leader>Kp` preview; `<Leader>Kt…` tables |
 | Media peeks | Cursor on `![](…)` / `![[…]]` or an HTTP(S) URL |
 | Quarto | `<Leader>Qp` preview; `<Leader>QR*` render |

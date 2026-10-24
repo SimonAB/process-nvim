@@ -1,6 +1,6 @@
 # Media and link peeks
 
-In Markdown and Obsidian buffers, process-nvim can show a popup next to the cursor for media embeds and web links. Place the cursor on the relevant line; the peek appears after a short debounce. Graphics use the Kitty protocol (Ghostty and Kitty are supported).
+In Markdown and Obsidian buffers, process-nvim can show a popup next to the cursor for media embeds and web links. Place the cursor on the relevant line; the peek appears after a short debounce. The image itself is drawn with the Kitty graphics protocol.
 
 ## Images and PDFs
 
@@ -53,7 +53,7 @@ Preview image selection:
 
 ## Requirements
 
-- A terminal with Kitty graphics (Ghostty or Kitty)
+- A terminal that implements Kitty graphics, for the image or PDF page. The popup can still open when the host does not draw that protocol. On macOS this configuration runs in [Rex](https://www.superlogical.com/rex).
 - `pdftoppm` from Poppler, for PDF peeks (`brew install poppler` on macOS)
 - Network access, for website peeks and the screenshot fallback
 

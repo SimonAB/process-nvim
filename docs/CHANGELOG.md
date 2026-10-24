@@ -38,6 +38,7 @@
 - **File formatting**: `BufWritePre` now enforces two empty lines at EOF on save.
 - **LaTeX lua-ul**: `\hl{}` uses a soul-style yellow background on the command and its argument (not Search/underline).
 - **Skim inverse search**: On macOS, a SyncTeX jump from Skim raises Rex and shows the session and pane that own that Neovim. Forward search still leaves focus in the terminal.
+- **Docs**: Installation, quick start, README, and the media-peek pages name Rex as the macOS terminal. Image peeks still depend on the Kitty graphics protocol.
 - **Pack lock**: Refreshed revisions for blink.cmp, gitsigns, mason-lspconfig, mini.nvim, nvim-lspconfig, nvim-treesitter, telescope, and vimtex.
 
 ---

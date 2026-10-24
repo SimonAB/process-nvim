@@ -8,7 +8,7 @@ process-nvim is a Neovim configuration for research writing and scientific compu
 
 ### Document processing
 
-- LaTeX: VimTeX, bidirectional SyncTeX (Skim)
+- LaTeX: VimTeX, bidirectional SyncTeX (Skim). On macOS, inverse search raises Rex.
 - Markdown: live preview, Obsidian, cursor peeks for images, PDFs, and web links; filename labels for empty image descriptions on save
 - Quarto: code execution (R, Python, Julia)
 - Typst: preview and CLI compile/watch (`typst c` / `typst w`)
@@ -229,7 +229,8 @@ Install language servers via Mason:
 **macOS (Skim)**:
 
 - Run `~/.config/nvim/scripts/configure-skim-synctex.sh` or set Skim → Sync → Custom with `nvim --headless -c "VimtexInverseSearch %line '%file'"`
-- Forward search: `\lv` in a `.tex` buffer (Skim scrolls to the cursor; Neovim keeps focus)
+- Inverse search: Cmd+Shift+click in Skim. Rex is raised on the session and pane that own Neovim.
+- Forward search: `\lv` in a `.tex` buffer (Skim scrolls to the cursor; the terminal keeps focus)
 
 **Arch Linux (Zathura)**:
 
@@ -240,6 +241,7 @@ Install language servers via Mason:
 
 ## Recent Changes
 
+- LaTeX: Skim inverse search on macOS raises Rex
 - Terminal mappings: `<leader>T[1,2,3]` → `<leader>T[h,v,f]` (consistency with Julia REPL)
 - Julia REPL: `--threads=auto` enabled
 - File formatting: Two empty lines at end of file on save

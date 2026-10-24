@@ -47,6 +47,8 @@ brew install lazygit
 brew install node
 ```
 
+Edit in [Rex](https://www.superlogical.com/rex). Skim inverse search raises the Rex session that owns Neovim.
+
 #### Arch Linux
 
 ```bash

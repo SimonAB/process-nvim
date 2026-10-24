@@ -94,7 +94,7 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 ### Media and link peeks
 
 #### No image or PDF popup
-- Use a Kitty-graphics terminal (Ghostty or Kitty). Terminal.app does not support these graphics.
+- The image is drawn with the Kitty graphics protocol. Terminal.app does not implement it, so the popup can open without a picture. On macOS, Neovim runs in Rex.
 - Place the cursor on an embed line (`![](…)` or `![[…]]`).
 - For PDFs, ensure `pdftoppm` is on `$PATH` (`brew install poppler`).
 - Use `<leader>Ki` to refresh and `<leader>Kx` to clear overlays.
