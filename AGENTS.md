@@ -633,7 +633,7 @@ If you encounter patterns not covered here or need clarification:
 
 - Prefer transparent which-key-style floats (body and border) with no buffer glyph bleed-through; strongly reject opaque float backgrounds.
 - Keep floating UI consistent across which-key, Mason, Telescope (including grep preview), theme picker, plugin-update, floating terminal, and media/URL peeks; prefer shared helpers over one-off winhl tweaks.
-- Theme appearance should track macOS light/dark (auto-dark-mode / Ghostty); avoid yellow-ish light themes; dark preference aligns with Catppuccin Mocha, light with high-contrast options (e.g. GitHub Light High Contrast / Flexoki Light).
+- Theme appearance should track macOS light/dark (auto-dark-mode). The day-to-day terminal is Rex. Avoid yellow-ish light themes; dark preference aligns with Catppuccin Mocha, light with high-contrast options (e.g. GitHub Light High Contrast / Flexoki Light).
 - When reverting a brittle fix, retain unrelated speed and robustness improvements unless asked to discard them.
 - Prefer screenshot-driven iteration for float transparency; do not “improve” a working transparent look into opacity.
 - Finish feature work with docs/changelog updates when relevant; commit and push only when explicitly asked.
@@ -650,7 +650,7 @@ If you encounter patterns not covered here or need clarification:
 - Flexoki colourscheme is loaded from the fork `SimonAB/flexoki-neovim` (not stock kepano), including transparent editor/float options.
 - CodeCompanion ACP is wired for Cursor and local Ollama; AI keymaps live under the `<leader>A` which-key group.
 - Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL.
-- LaTeX Skim inverse/forward search lives under `scripts/` (Ghostty-aware); inverse search should auto-raise the terminal and works with both Herdr and tmux. VimTeX proofreading macros (`\add{}`, `\verify{}`, `\edit{}`, etc.) are registered via `g:vimtex_syntax_custom_cmds` in `lua/plugins/vimtex.lua` (with colours on `texCmdC*` / `texC*Arg`); call `vimtex#syntax#core#init_custom()` after init when no syntax package loaded, and avoid hand-rolled `containedin=ALL` regions / `syntax sync fromstart` thrash on long paragraphs.
+- LaTeX Skim inverse/forward search lives under `scripts/`. On macOS, inverse search raises Rex (bundle id `com.superlogical.rex`) and selects the session and pane that own that Neovim (`REX_SESSION` / `REX_BLOCK`); forward search keeps focus in the terminal (`vimtex_view_skim_activate = 0`). Linux Zathura still focuses the Hyprland Ghostty window. VimTeX proofreading macros (`\add{}`, `\verify{}`, `\edit{}`, etc.) are registered via `g:vimtex_syntax_custom_cmds` in `lua/plugins/vimtex.lua` (with colours on `texCmdC*` / `texC*Arg`); call `vimtex#syntax#core#init_custom()` after init when no syntax package loaded, and avoid hand-rolled `containedin=ALL` regions / `syntax sync fromstart` thrash on long paragraphs.
 - Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
 - Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
 - VitePress docs live under `docs/`; `.cursor/` and `.vscode/` are gitignored in this repo.

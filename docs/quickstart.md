@@ -273,7 +273,7 @@ Or set manually in Skim → Preferences → Sync:
 3. **Arguments**: `--headless -c "VimtexInverseSearch %line '%file'"`
 
 In Skim:
-- Cmd+Shift+Click on PDF to jump to corresponding line in Neovim (Ghostty is raised automatically)
+- Cmd+Shift+Click on the PDF to jump to the corresponding line in Neovim (Rex is raised on that session and pane)
 
 ### Arch Linux: Configure Zathura for SyncTeX
 

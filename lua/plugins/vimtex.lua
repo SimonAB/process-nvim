@@ -410,35 +410,155 @@ vim.defer_fn(function()
 	end
 end, 300)
 
--- Raise Ghostty after Skim inverse search so the cursor jump is visible behind Skim.
--- Keep Ghostty focused around SyncTeX jumps (Skim activate=0 on macOS; Zathura on Linux).
+-- Raise the terminal after inverse search so the cursor jump is visible behind the PDF.
+-- macOS: Rex (Skim activate=0 keeps forward search in the terminal).
+-- Linux: the Hyprland Ghostty window, after Zathura has taken focus.
 do
 	local vimtex_focus_group = vim.api.nvim_create_augroup("VimtexSyncTeXFocus", { clear = true })
+	local REX_BUNDLE_ID = "com.superlogical.rex"
 
-	---Bring Ghostty to the foreground after a SyncTeX jump.
-	local function focus_ghostty()
-		vim.schedule(function()
-			local cmd
-			if is_macos then
-				cmd = { "osascript", "-e", 'tell application "Ghostty" to activate' }
-			elseif is_linux and vim.fn.executable("hyprctl") == 1 then
-				cmd = { "hyprctl", "dispatch", "focuswindow", "class:com.mitchellh.ghostty" }
-			else
+	---Bring the Rex app to the foreground.
+	---The bundle id stays valid while the display name is "Rex Beta".
+	local function activate_rex()
+		local ok = pcall(vim.system, {
+			"osascript",
+			"-e",
+			string.format('tell application id "%s" to activate', REX_BUNDLE_ID),
+		}, { detach = true })
+		if not ok then
+			vim.notify("Failed to focus Rex after SyncTeX", vim.log.levels.DEBUG)
+		end
+	end
+
+	---Pick the Rex app that is showing this Neovim's session.
+	---@param clients table[]
+	---@param session string
+	---@return string|nil
+	local function rex_app_client_id(clients, session)
+		local fallback = nil
+		local app_count = 0
+		for _, client in ipairs(clients) do
+			local info = client.info or {}
+			if info.kind == "app" and client.client_id then
+				app_count = app_count + 1
+				fallback = fallback or client.client_id
+				for _, id in ipairs(client.session_ids or {}) do
+					if id == session then
+						return client.client_id
+					end
+				end
+			end
+		end
+		if app_count == 1 then
+			return fallback
+		end
+		return nil
+	end
+
+	---Show this Neovim's Rex session and pane, then raise Rex.
+	---Skim's headless nvim only RPCs the live editor, so REX_SESSION and
+	---REX_BLOCK here belong to that editor, not to Skim.
+	local function focus_rex()
+		local session = vim.env.REX_SESSION
+		local block = vim.env.REX_BLOCK
+		if not session or session == "" or vim.fn.executable("rex") ~= 1 then
+			activate_rex()
+			return
+		end
+
+		local function select_session(window_id, client_id)
+			local args = { "rex" }
+			if client_id and client_id ~= "" then
+				table.insert(args, "-C")
+				table.insert(args, client_id)
+			end
+			table.insert(args, "do")
+			table.insert(args, "session.select")
+			table.insert(args, "session_id=" .. session)
+			if window_id and window_id ~= "" then
+				table.insert(args, "window_id=" .. window_id)
+			end
+			vim.system(args, {}, function()
+				vim.schedule(activate_rex)
+			end)
+		end
+
+		local function focus_block_then_select(window_id, client_id)
+			if not block or block == "" then
+				select_session(window_id, client_id)
 				return
 			end
-			local ok = pcall(vim.system, cmd, { detach = true })
-			if not ok then
-				vim.notify("Failed to focus Ghostty after SyncTeX", vim.log.levels.DEBUG)
+			vim.system({ "rex", "focus", "-s", session, block }, {}, function()
+				vim.schedule(function()
+					select_session(window_id, client_id)
+				end)
+			end)
+		end
+
+		vim.system({ "rex", "client", "ls", "-s", session, "--json" }, { text = true }, function(clients_result)
+			vim.schedule(function()
+				local client_id = nil
+				if clients_result.code == 0 and clients_result.stdout and clients_result.stdout ~= "" then
+					local ok, decoded = pcall(vim.json.decode, clients_result.stdout)
+					if ok and type(decoded) == "table" then
+						client_id = rex_app_client_id(decoded.clients or {}, session)
+					end
+				end
+
+				if not block or block == "" then
+					focus_block_then_select(nil, client_id)
+					return
+				end
+
+				vim.system({ "rex", "block", "inspect", block, "--json" }, { text = true }, function(block_result)
+					vim.schedule(function()
+						local window_id = nil
+						if block_result.code == 0 and block_result.stdout and block_result.stdout ~= "" then
+							local ok, decoded = pcall(vim.json.decode, block_result.stdout)
+							if ok and type(decoded) == "table" and type(decoded.block) == "table" then
+								window_id = decoded.block.window_id
+							end
+						end
+						focus_block_then_select(window_id, client_id)
+					end)
+				end)
+			end)
+		end)
+	end
+
+	---Bring Ghostty forward on Linux after Zathura takes the focus.
+	local function focus_linux_terminal()
+		if not (is_linux and vim.fn.executable("hyprctl") == 1) then
+			return
+		end
+		local ok = pcall(vim.system, {
+			"hyprctl",
+			"dispatch",
+			"focuswindow",
+			"class:com.mitchellh.ghostty",
+		}, { detach = true })
+		if not ok then
+			vim.notify("Failed to focus Ghostty after SyncTeX", vim.log.levels.DEBUG)
+		end
+	end
+
+	local function focus_after_synctex()
+		vim.schedule(function()
+			if is_macos then
+				focus_rex()
+			else
+				focus_linux_terminal()
 			end
 		end)
 	end
 
-	-- Inverse search (PDF → Neovim): always raise the terminal so the jump is visible.
+	-- Inverse search (PDF → Neovim): raise the terminal so the jump is visible.
 	vim.api.nvim_create_autocmd("User", {
 		group = vimtex_focus_group,
 		pattern = "VimtexEventViewReverse",
-		desc = "Raise Ghostty after PDF inverse search",
-		callback = focus_ghostty,
+		desc = is_macos and "Raise Rex after PDF inverse search"
+			or "Raise the terminal after PDF inverse search",
+		callback = focus_after_synctex,
 	})
 
 	-- Forward search (Neovim → PDF): on Linux, reclaim focus after Zathura maps/activates.
@@ -447,8 +567,8 @@ do
 		vim.api.nvim_create_autocmd("User", {
 			group = vimtex_focus_group,
 			pattern = "VimtexEventView",
-			desc = "Keep Ghostty focused after Zathura forward search",
-			callback = focus_ghostty,
+			desc = "Keep the terminal focused after Zathura forward search",
+			callback = focus_after_synctex,
 		})
 	end
 end

@@ -36,7 +36,7 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 - Verify your project structure matches supported patterns
 
 #### After changing SyncTeX configuration
-- **Restart Neovim** in every tmux/Herdr pane so each instance registers a fresh RPC socket with VimTeX
+- **Restart Neovim** in the Rex pane (or each tmux/Herdr pane) so the instance registers a fresh RPC socket with VimTeX. Inverse search then raises that Rex session.
 - Open a `.tex` buffer once, then check `~/.cache/vimtex/nvim_servernames.log` lists a live socket (not a stale path)
 - **Forward search** (`\lv`) is in-process and usually works without RPC; **inverse search** (Skim click) depends on the registry above
 - Remove a leftover shared socket from older configs if present: `rm -f /tmp/nvim_server`
