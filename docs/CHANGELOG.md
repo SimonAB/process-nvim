@@ -2,6 +2,9 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### LSP navigation
+- Apply buffer-local `gd` (go to definition) whenever a language server attaches, including Tinymist for Typst and the R language server, as well as Julia and Lua.
+
 ### Documentation
 - Add dashboard/file-search and Markdown editing guides to the website; update the README, quick start, keymaps, installation, performance and troubleshooting pages for the current behaviour.
 

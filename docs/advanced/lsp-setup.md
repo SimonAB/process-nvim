@@ -147,6 +147,11 @@ gD          " Go to declaration
 K           " Show hover documentation
 ```
 
+`gd` is registered for each buffer when any language server attaches, including
+Tinymist (Typst), R, Julia and Lua. Place the cursor on a symbol and press `gd`
+in normal mode; use `Ctrl-o` to return. To see the which-key hint, press `g`
+without the leader key and pause for approximately 500 ms.
+
 ### Custom LSP Actions
 ```vim
 <Space>Lf   " Format document

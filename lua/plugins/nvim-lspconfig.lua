@@ -56,14 +56,30 @@ if blink_ok then
 	_G.enhanced_lsp_capabilities = enhanced_capabilities
 end
 
--- Common on_attach function for all LSP servers
+-- Mason-managed servers do not use the custom Julia/Lua on_attach callback.
+local definition_group = vim.api.nvim_create_augroup("LspDefinitionNavigation", { clear = true })
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = definition_group,
+	desc = "Enable go to definition for every language server",
+	callback = function(args)
+		if not vim.api.nvim_buf_is_valid(args.buf) then
+			return
+		end
+		vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
+			buffer = args.buf,
+			silent = true,
+			desc = "Go to definition",
+		})
+	end,
+})
+
+-- Common on_attach function for custom language server configurations
 local function on_attach(client, bufnr)
 	vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc" -- Enable omnifunc for completion
 	local opts = { noremap = true, silent = true, buffer = bufnr }
 
 	-- LSP keymaps for navigation and actions
 	-- Neovim 0.13+ goto follows 'switchbuf' (set in config.lua).
-	vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
 	vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
 	vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, opts)
 	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)

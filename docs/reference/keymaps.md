@@ -89,6 +89,14 @@ K               " Show hover documentation
 <Leader>Lm      " Open Mason
 ```
 
+`gd` is buffer-local and becomes available when a language server attaches,
+including Tinymist for Typst, R, Julia and Lua. In normal mode, place the cursor
+on a symbol and press `gd` without the leader key. Press `Ctrl-o` to return.
+Definition targets depend on what the language server can resolve.
+
+For which-key hints, press `g` and pause for approximately 500 ms; the popup
+shows `d` as **Go to definition**. `<Leader>g` remains project grep.
+
 ## Mason Package Management
 
 ### Enhanced Mason Operations
