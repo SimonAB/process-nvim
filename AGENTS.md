@@ -662,7 +662,7 @@ If you encounter patterns not covered here or need clarification:
 ## Navigation and Markdown maintenance
 
 - `<leader>H` is a direct Home action, not a which-key prefix group. Preserve lowercase `<leader>h` for clearing search highlighting.
-- Dashboard file discovery lives in `lua/core/dashboard-files.lua`: recursive ripgrep enumeration, asynchronous file checks, a ten-second directory cache and save/rename invalidation. Keep rendering and shortcut rebinding in the mini.nvim dashboard modules; late results must not replace a different directory's dashboard.
+- Dashboard file discovery lives in `lua/core/dashboard-files.lua`: recursive ripgrep enumeration, asynchronous file checks, a ten-second directory cache and save/rename invalidation. Both the current-directory list and recent files elsewhere skip viewed or generated extensions (PDF, HTML, images, office documents, archives); extensionless names stay eligible. Keep rendering and shortcut rebinding in the mini.nvim dashboard modules; late results must not replace a different directory's dashboard.
 - Dashboard labels use `dashboard-width.lua` and approximately 70% of the window width. Truncation affects labels, never the paths stored in actions.
 - `<leader>f` uses `core.modified-file-picker`: modification-date scores for an empty query, the existing native fuzzy sorter for typed queries. Preserve normal Telescope discovery, exclusions and preview options.
 - `core.markdown-image-alt` fills empty inline image descriptions from filename stems on save. Preserve authored descriptions and link targets; use Markdown Treesitter structure to exclude code, frontmatter and comments. Keep it local and independent of model calls.

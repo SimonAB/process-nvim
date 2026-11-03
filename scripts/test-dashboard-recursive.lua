@@ -9,6 +9,10 @@ vim.fn.writefile({"old"}, root .. "/top.jl")
 vim.fn.writefile({"new"}, root .. "/nested/deeper/new file.jl")
 vim.fn.writefile({"hidden"}, root .. "/nested/.hidden")
 vim.fn.writefile({"ignored"}, root .. "/ignored/skip.jl")
+vim.fn.writefile({"<html></html>"}, root .. "/nested/preview.html")
+vim.fn.writefile({"%PDF-1.4"}, root .. "/paper.pdf")
+vim.uv.fs_utime(root .. "/nested/preview.html", 30, 30)
+vim.uv.fs_utime(root .. "/paper.pdf", 40, 40)
 local fd = assert(vim.uv.fs_open(root .. "/nested/binary", "w", 384))
 vim.uv.fs_write(fd, "binary\0data", 0)
 vim.uv.fs_close(fd)
@@ -25,6 +29,21 @@ assert(items[1].name == "a.  nested/deeper/new file.jl", "Nested newest file wit
 assert(items[2].name == "b.  top.jl", "Top-level files retained")
 items[1].action()
 assert(vim.uv.fs_realpath(vim.api.nvim_buf_get_name(0)) == vim.uv.fs_realpath(root .. "/nested/deeper/new file.jl"))
+local elsewhere = vim.fn.tempname()
+vim.fn.mkdir(elsewhere, "p")
+vim.fn.writefile({"note"}, elsewhere .. "/notes.md")
+vim.fn.writefile({"%PDF-1.4"}, elsewhere .. "/paper.pdf")
+vim.fn.writefile({"<html></html>"}, elsewhere .. "/preview.html")
+vim.v.oldfiles = {
+	elsewhere .. "/paper.pdf",
+	elsewhere .. "/preview.html",
+	elsewhere .. "/notes.md",
+	root .. "/top.jl",
+}
+local recent = content.create_recent_files()
+assert(#recent == 1, "Recent files elsewhere omit pdf and html")
+assert(recent[1].action:find("notes.md", 1, true), "Editable history entry is kept")
 vim.fn.delete(root, "rf")
+vim.fn.delete(elsewhere, "rf")
 print("Recursive dashboard discovery and file action passed")
 vim.cmd("qa!")

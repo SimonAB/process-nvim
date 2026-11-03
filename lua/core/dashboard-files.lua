@@ -11,6 +11,34 @@ local MAX_FILES = 5
 local cache = {}
 local start_scan
 
+-- Viewed or generated formats. Extensionless names (Makefile, README) stay eligible.
+local NON_EDITABLE_EXTENSIONS = {
+	pdf = true, html = true, htm = true, xhtml = true, mhtml = true,
+	epub = true, mobi = true, djvu = true, ps = true,
+	jpg = true, jpeg = true, png = true, gif = true, bmp = true,
+	tif = true, tiff = true, svg = true, ico = true, webp = true, avif = true, heic = true,
+	mp3 = true, mp4 = true, avi = true, mov = true, wmv = true, flv = true, mkv = true, webm = true,
+	zip = true, tar = true, gz = true, tgz = true, rar = true, ["7z"] = true, bz2 = true, xz = true,
+	exe = true, dmg = true, pkg = true, deb = true, rpm = true,
+	doc = true, docx = true, xls = true, xlsx = true, ppt = true, pptx = true,
+	odt = true, ods = true, odp = true, rtf = true,
+	class = true, o = true, so = true, dll = true, dylib = true,
+	pyc = true, pyo = true, pyd = true,
+	log = true, tmp = true, temp = true,
+}
+
+---Return whether this path is a file the dashboard should offer for editing.
+---Files with no extension remain eligible. The check is the last extension only.
+---@param path string
+---@return boolean
+function DashboardFiles.is_editable(path)
+	local extension = vim.fn.fnamemodify(path, ":e"):lower()
+	if extension == "" then
+		return true
+	end
+	return NON_EDITABLE_EXTENSIONS[extension] ~= true
+end
+
 ---Discard old completed entries while retaining in-flight work and the active key.
 ---@param keep string Directory that must remain available to the caller
 local function prune_cache(keep)
@@ -95,6 +123,10 @@ local function select_text_files(cwd, entry, generation, candidates)
 		local file = candidates[index]
 		if not file or #selected >= MAX_FILES then
 			finish_scan(cwd, entry, generation, selected)
+			return
+		end
+		if not DashboardFiles.is_editable(file.path) then
+			read_next()
 			return
 		end
 		vim.uv.fs_open(file.path, "r", 0, function(_, fd)

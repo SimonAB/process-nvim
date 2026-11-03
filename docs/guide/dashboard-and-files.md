@@ -8,16 +8,16 @@ The working-directory path appears above the following sections:
 
 | Section | Contents | Shortcuts |
 | --- | --- | --- |
-| Current directory | Up to five newest-modified text files throughout the working directory tree | `a`–`e` |
+| Current directory | Up to five newest-modified editable files throughout the working directory tree | `a`–`e` |
 | Recent projects | Recently visited directories | `1`–`4` |
-| Recent files elsewhere | Previously opened files outside the current directory tree | Navigate and press Enter |
+| Recent files elsewhere | Previously opened editable files outside the current directory tree | Navigate and press Enter |
 | Actions | Find files, Grep, Quit, plugin updates and available Forge actions | Navigate and press Enter; Forge also has labelled uppercase shortcuts |
 
 Use `j`/`k` or the arrow keys to select an item, Enter to open it, and `q` to quit Neovim. Nested files use relative paths. File labels and the directory-path line shorten to approximately 70% of the window width, preserving filename endings; they adjust when the window is resized. Opening a file always uses its full path.
 
 ## Discovery and freshness
 
-The dashboard uses `rg --files --null` directly, without loading Telescope. Ripgrep walks subdirectories and respects ignore rules; hidden files are omitted. Files are sorted by modification time, then leading candidates are checked for readability and NUL bytes in their first 8 KiB. This is a lightweight text-file heuristic, rather than complete file-format detection.
+The dashboard uses `rg --files --null` directly, without loading Telescope. Ripgrep walks subdirectories and respects ignore rules; hidden files are omitted. Files are sorted by modification time. Viewed or generated formats (PDF, HTML, images, office documents, archives, and similar) are skipped. Remaining candidates are checked for readability and NUL bytes in their first 8 KiB. Extensionless names such as `Makefile` stay eligible. The same extension rule applies to **Recent files elsewhere**.
 
 Discovery and metadata/content reads run in the background. On a cold visit, file entries appear when discovery finishes; during refresh, previous results remain visible. Results are cached for ten seconds per directory. Saving or renaming files in Neovim invalidates affected caches. Changes made externally are picked up on the next dashboard opening or content refresh after the cache expires. Window resizing adjusts labels without rescanning.
 

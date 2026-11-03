@@ -20,6 +20,7 @@
 - `<leader>f` lists files newest-modified first with an empty query; typing uses the existing fuzzy ranking, and clearing the query restores modification order. Existing exclusions and preview settings are retained.
 
 ### Dashboard
+- Omit viewed and generated files (PDF, HTML, images, office documents, archives, and similar) from the current-directory list and from recent files elsewhere. Extensionless names stay eligible.
 - Discover recursive dashboard files in the background, with bounded asynchronous metadata checks and a ten-second directory cache. Keep previous results visible during refresh; saves and renames invalidate affected caches, and refreshed shortcuts follow the latest results.
 - Add `<leader>H` (Space, then Shift+H) to open the Home dashboard with refreshed file entries.
 - Shorten file labels and the working-directory path to fit approximately 70% of the window width, preserving filename endings and direct shortcuts; refresh on window resizing. Full paths remain attached to file actions.

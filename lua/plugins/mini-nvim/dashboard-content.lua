@@ -69,11 +69,13 @@ function M.get_recent_files(limit)
 	-- Limit the number of oldfiles to process
 	local max_oldfiles = math.min(#oldfiles, 10)
 
+	local discovery_ok, discovery = pcall(require, "core.dashboard-files")
 	for i = 1, max_oldfiles do
 		local f = oldfiles[i]
 		if type(f) == "string" and #f > 0 then
 			local abs = utils.get_absolute_path(f)
-			if abs ~= "" and utils.is_file_accessible(abs) and files[abs] == nil then
+			if abs ~= "" and utils.is_file_accessible(abs) and files[abs] == nil
+				and (not discovery_ok or discovery.is_editable(abs)) then
 				files[abs] = true
 				table.insert(order, abs)
 				if #order >= limit then
@@ -151,10 +153,12 @@ end
 function M.create_recent_files()
 	local items = {}
 	local cwd = vim.uv.fs_realpath(vim.fn.getcwd()) or vim.fn.getcwd()
+	local discovery_ok, discovery = pcall(require, "core.dashboard-files")
 	for _, file in ipairs(vim.v.oldfiles or {}) do
 		local path = vim.uv.fs_realpath(file)
 		if path and path ~= cwd and path:sub(1, #cwd + 1) ~= cwd .. "/"
-			and vim.fn.filereadable(path) == 1 then
+			and vim.fn.filereadable(path) == 1
+			and (not discovery_ok or discovery.is_editable(path)) then
 			table.insert(items, {
 				name = vim.fn.fnamemodify(path, ":~"),
 				action = "edit " .. utils.escape_filename(path),

@@ -81,7 +81,7 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 #### File picker ordering differs from the dashboard
 - `<leader>f` sorts an empty query by modification time, then uses fuzzy ranking while typing. Clear the query to restore date order; reopen the picker to refresh file timestamps.
 - Ordinary `:Telescope find_files` uses its standard sorter. `<leader>Rf` uses opening frequency and recency, not filesystem timestamps.
-- The picker excludes common media/archive extensions. The dashboard uses an initial-byte text check, so their file lists can differ.
+- The picker excludes common media and archive extensions. The dashboard also skips PDF, HTML, and other viewed formats, then uses an initial-byte text check, so the two lists can still differ.
 
 ### Markdown image descriptions
 
