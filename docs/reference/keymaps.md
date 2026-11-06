@@ -117,8 +117,8 @@ shows `d` as **Go to definition**. `<Leader>g` remains project grep.
 ### LaTeX/VimTeX
 VimTeX provides comprehensive default keymaps (see `:help vimtex-default-mappings`):
 ```vim
-\LocalLeader\ll  " Compile LaTeX (latexmk + lualatex; runs biber when needed)
-\LocalLeader\lb  " Compile (alias of ll)
+\LocalLeader\ll  " Toggle continuous compilation (latexmk + lualatex)
+\LocalLeader\lb  " Compile once (latexmk + lualatex)
 \LocalLeader\lv  " View PDF (forward search)
 \LocalLeader\lk  " Stop compilation
 \LocalLeader\lK  " Stop all compilations
@@ -140,7 +140,7 @@ VimTeX provides comprehensive default keymaps (see `:help vimtex-default-mapping
 " And many more - see :help vimtex-default-mappings
 ```
 
-**Note**: Compilation uses VimTeX’s latexmk backend with LuaLaTeX. latexmk runs biber/bibtex when the bibliography backend requires it, so `\lb` is kept only as an alias of `\ll`. Auxiliary files are written beside the `.tex` (same as texlab `auxDirectory = "."`).
+**Note**: Compilation uses VimTeX’s latexmk backend with LuaLaTeX. `\ll` toggles continuous compilation; `\lb` runs one build and exits. Both allow latexmk to rerun LaTeX and biber/bibtex as needed to resolve references. Auxiliary files are written beside the `.tex` (same as texlab `auxDirectory = "."`).
 
 ### Typst
 Buffer-local on `typ` / `typst` files (`<localleader>` is typically `\`):

@@ -1313,9 +1313,11 @@ vim.api.nvim_create_autocmd("FileType", {
 		-- Ensure VimTeX is loaded before setting <Plug> mappings.
 		vim.cmd("silent! packadd vimtex")
 
-		map("n", "<localleader>ll", "<Plug>(vimtex-compile)", { buffer = bufnr, desc = "Compile (latexmk; runs biber when needed)" })
-		-- Alias: formerly a hand-rolled latexmk→biber chain; latexmk already handles biblatex.
-		map("n", "<localleader>lb", "<Plug>(vimtex-compile)", { buffer = bufnr, desc = "Compile (same as <localleader>ll)" })
+		map("n", "<localleader>ll", "<Plug>(vimtex-compile)", { buffer = bufnr, desc = "Toggle continuous compilation (latexmk)" })
+		map("n", "<localleader>lb", "<Plug>(vimtex-compile-ss)", {
+			buffer = bufnr,
+			desc = "Compile once (latexmk)",
+		})
 		map("n", "<localleader>lv", "<Plug>(vimtex-view)", { buffer = bufnr, desc = "View PDF" })
 		map("n", "<localleader>lk", "<Plug>(vimtex-stop)", { buffer = bufnr, desc = "Stop" })
 		map("n", "<localleader>lK", "<Plug>(vimtex-stop-all)", { buffer = bufnr, desc = "Stop all" })
