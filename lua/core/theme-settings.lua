@@ -180,8 +180,10 @@ function ThemeSettings.get_default_theme(appearance)
 	if appearance ~= "light" and appearance ~= "dark" then
 		appearance = "dark"
 	end
+	local ok_shared, shared = pcall(require, "core.shared-theme")
+	local selection = ok_shared and shared.read() or nil
 	local config = ThemeSettings.get_active_config()
-	local defaults = config.defaults or {}
+	local defaults = selection and selection.nvim or config.defaults or {}
 	if appearance == "light" then
 		return defaults.light or "catppuccin"
 	end

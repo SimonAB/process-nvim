@@ -7,6 +7,7 @@ Utility scripts for this Neovim configuration. Paths are relative to the repo ro
 | `configure-skim-synctex.sh` | Write Skim inverse-search preferences for VimTeX (`VimtexInverseSearch`) — macOS |
 | `configure-zathura-synctex.sh` | Write Zathura `synctex-editor-command` for VimTeX (`VimtexInverseSearch`) — Linux |
 | `daily-vault-commit.sh` | Commit (and optionally push) the Obsidian vault on a schedule; `install` / `uninstall` for macOS launchd |
+| `test-shared-theme.lua` | Check shared theme selection, explicit appearance, live refresh and safe fallback |
 | `test-dashboard-recursive.lua` | Check nested text-file discovery, ignore rules, editable-type filtering and file opening |
 | `test-dashboard-cache.lua` | Check asynchronous discovery, cache reuse, expiry and invalidation |
 | `test-dashboard-async-ui.lua` | Check dashboard refresh, directory isolation and shortcut rebinding |

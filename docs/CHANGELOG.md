@@ -2,6 +2,9 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### Shared themes (experimental)
+- Read a shared light/dark theme selection for Neovim and refresh running instances. Coordinate with Ghostty and the current Rex pane through the parent dotfiles theme switcher; retain local defaults when no valid selection exists.
+
 ### LSP navigation
 - Apply buffer-local `gd` (go to definition) whenever a language server attaches, including Tinymist for Typst and the R language server, as well as Julia and Lua.
 

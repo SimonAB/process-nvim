@@ -16,6 +16,7 @@ export default defineConfig({
         items: [
           { text: 'Dashboard and files', link: '/guide/dashboard-and-files' },
           { text: 'Markdown editing', link: '/guide/markdown-editing' },
+          { text: 'Shared application themes', link: '/guide/shared-themes' },
           { text: 'Media and link peeks', link: '/guide/media-peeks' },
           { text: 'Troubleshooting', link: '/TROUBLESHOOTING_GUIDE' },
           { text: 'Performance', link: '/PERFORMANCE_OPTIMISATIONS' },
@@ -39,6 +40,7 @@ export default defineConfig({
         items: [
           { text: 'Dashboard and files', link: '/guide/dashboard-and-files' },
           { text: 'Markdown editing', link: '/guide/markdown-editing' },
+          { text: 'Shared application themes', link: '/guide/shared-themes' },
           { text: 'Media and link peeks', link: '/guide/media-peeks' },
           { text: 'Troubleshooting', link: '/TROUBLESHOOTING_GUIDE' },
           { text: 'Performance Optimisations', link: '/PERFORMANCE_OPTIMISATIONS' }

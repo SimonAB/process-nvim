@@ -460,6 +460,11 @@ end
 function ThemeManager.get_active_theme(opts)
 	opts = opts or {}
 	local appearance = opts.appearance
+	local ok_shared, shared = pcall(require, "core.shared-theme")
+	local selection = ok_shared and shared.read() or nil
+	if selection and selection.appearance ~= "auto" then
+		appearance = selection.appearance
+	end
 	if appearance ~= "light" and appearance ~= "dark" then
 		appearance = ThemeManager.detect_system_theme()
 	else
@@ -468,6 +473,7 @@ function ThemeManager.get_active_theme(opts)
 		last_detection_time = vim.loop.hrtime() / 1000000
 	end
 	vim.o.background = appearance
+	vim.env.JULIA_REPL_THEME = appearance
 	return ThemeSettings.get_default_theme(appearance)
 end
 
@@ -801,6 +807,10 @@ function ThemeManager.init()
 
 	-- Setup lazy loading for other themes
 	ThemeManager.setup_lazy_loading()
+	local ok_shared, shared = pcall(require, "core.shared-theme")
+	if ok_shared then
+		shared.setup()
+	end
 
 	-- Setup highlight management
 	ThemeManager.setup_highlight_autocmd()
