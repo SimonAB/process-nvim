@@ -646,10 +646,10 @@ If you encounter patterns not covered here or need clarification:
 
 ## Learned Workspace Facts
 
-- This repo is the nested Neovim config at `~/SynologyDrive/etc/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features such as multicursor/graphics under active adoption).
+- This repo is the nested Neovim config at `~/SynologyDrive/etc/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features such as multicursor/graphics under active adoption). Track `nvim-pack-lock.json` in git — it is the `'packlockfile'` pin list; commit it after plugin updates.
 - Flexoki colourscheme is loaded from the fork `SimonAB/flexoki-neovim` (not stock kepano), including transparent editor/float options.
 - CodeCompanion ACP is wired for Cursor and local Ollama; AI keymaps live under the `<leader>A` which-key group.
-- Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL.
+- Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL. LanguageServer lives in the `@nvim-lspconfig` env — `:JuliaLspUpdate` for release, `:JuliaLspUpdateDev` for `main`.
 - LaTeX Skim inverse/forward search lives under `scripts/`. On macOS, inverse search raises Rex (bundle id `com.superlogical.rex`) and selects the session and pane that own that Neovim (`REX_SESSION` / `REX_BLOCK`); forward search keeps focus in the terminal (`vimtex_view_skim_activate = 0`). Linux Zathura still focuses the Hyprland Ghostty window. VimTeX proofreading macros (`\add{}`, `\verify{}`, `\edit{}`, etc.) are registered via `g:vimtex_syntax_custom_cmds` in `lua/plugins/vimtex.lua` (with colours on `texCmdC*` / `texC*Arg`); call `vimtex#syntax#core#init_custom()` after init when no syntax package loaded, and avoid hand-rolled `containedin=ALL` regions / `syntax sync fromstart` thrash on long paragraphs.
 - Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
 - Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
