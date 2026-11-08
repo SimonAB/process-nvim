@@ -483,6 +483,12 @@ end
 function ThemeManager.load_immediate(opts)
 	opts = opts or {}
 	local theme = ThemeManager.get_active_theme({ appearance = opts.appearance })
+	-- Inside Rex, the terminal's own theme wins over the configured default.
+	local ok_rex, rex_follow = pcall(require, "core.rex-follow")
+	local rex_theme = ok_rex and rex_follow.current() or nil
+	if rex_theme then
+		theme = rex_theme
+	end
 	local ok = pcall(vim.cmd.colorscheme, theme)
 	if not ok then
 		vim.notify("Failed to load theme: " .. theme, vim.log.levels.WARN)
@@ -810,6 +816,10 @@ function ThemeManager.init()
 	local ok_shared, shared = pcall(require, "core.shared-theme")
 	if ok_shared then
 		shared.setup()
+	end
+	local ok_rex, rex_follow = pcall(require, "core.rex-follow")
+	if ok_rex then
+		rex_follow.setup()
 	end
 
 	-- Setup highlight management

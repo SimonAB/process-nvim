@@ -139,6 +139,11 @@ Julia REPLs launch with `--threads=auto` for parallel computing. `<C-c>` recogni
 This configuration uses Flexoki from the fork [`SimonAB/flexoki-neovim`](https://github.com/SimonAB/flexoki-neovim)
 for transparent UI surfaces (`flexoki-dark` / `flexoki-light`).
 
+The 41 built-in Rex themes are available as generated schemes (`rex-merino-dark`,
+`rex-whitby-bay`, and so on). Inside a Rex pane, Neovim follows the pane's theme
+automatically; set `vim.g.rex_follow = false` to disable this, and run `:RexFollow`
+to inspect the match. See `docs/guide/shared-themes.md`.
+
 ### AI (CodeCompanion)
 
 | Key | Action |
@@ -166,10 +171,14 @@ See [Keymaps Reference](docs/reference/keymaps.md).
 │   │   ├── plugin-loader.lua
 │   │   ├── plugin-manager.lua
 │   │   ├── plugin-reload.lua
+│   │   ├── rex-colorscheme.lua   # Rex palette → highlight groups
+│   │   ├── rex-follow.lua        # Follow the Rex pane theme (OSC queries)
+│   │   ├── rex-index.lua         # Generated: Rex theme colours for matching
 │   │   ├── theme-manager.lua
 │   │   ├── theme-picker.lua
 │   │   └── typst-project.lua
 │   └── plugins/             # Per-plugin setup
+├── colors/                  # Generated rex-*.lua colourschemes (palette only)
 ├── docs/                    # VitePress site
 └── scripts/                 # SyncTeX, vault commit, config tests (see scripts/README.md)
 ```

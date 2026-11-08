@@ -45,6 +45,15 @@ end
 -- Classify a theme name as "dark", "light" or "special" (fallback)
 local function classify_theme(name)
 	local n = (name or ""):lower()
+	-- Generated Rex schemes record their appearance in the palette file.
+	if n:find("^rex%-") then
+		local file = vim.api.nvim_get_runtime_file("colors/" .. n .. ".lua", false)[1]
+		local lines = file and vim.fn.readfile(file, "", 6) or {}
+		local appearance = table.concat(lines, "\n"):match('appearance = "(%a+)"')
+		if appearance == "dark" or appearance == "light" then
+			return appearance
+		end
+	end
 	if n:find("dark") or n:find("night") or n:find("midnight") or n:find("onedark") or n:find("nord") or n:find("twilight256") then
 
 		return "dark"

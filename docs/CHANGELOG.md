@@ -5,6 +5,11 @@
 ### Shared themes (experimental)
 - Read a shared light/dark theme selection for Neovim and refresh running instances. Coordinate with Ghostty and the current Rex pane through the parent dotfiles theme switcher; retain local defaults when no valid selection exists.
 
+### Rex themes
+- Generate 41 native colourschemes (`rex-<id>`) from Rex's built-in themes with `config/theme/rex-to-nvim.py`; the shared engine `core/rex-colorscheme.lua` maps each palette onto editor, syntax, Treesitter, diagnostic and diff groups, with comment contrast of at least about 3:1 on every theme.
+- Follow the theme of the current Rex pane by querying the terminal's colours (OSC 4, 10 and 11) and matching them to a generated scheme. Active only inside Rex; disable with `vim.g.rex_follow = false`; `:RexFollow` reports the match.
+- Label `rex-*` schemes as dark or light in the theme picker. Add `scripts/test-rex-themes.lua`.
+
 ### LaTeX
 - Use `<localleader>lb` for a single latexmk build; retain `<localleader>ll` for continuous compilation.
 
