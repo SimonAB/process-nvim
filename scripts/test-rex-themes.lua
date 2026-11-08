@@ -30,6 +30,31 @@ for _, entry in ipairs(index) do
 end
 assert(follow.match({ background = "#123456", foreground = "#abcdef" }) == nil)
 
+-- Closest distinct themes must sit outside the follower's acceptance band, otherwise
+-- rounding could hand one theme's colours to another (ember-hollow / sonoran-dusk).
+local fields = { "background", "foreground", "red", "blue" }
+local tolerance = follow._TOLERANCE
+local function rgb_distance(a, b)
+	local total = 0
+	for i = 2, 6, 2 do
+		total = total + math.abs(tonumber(a:sub(i, i + 1), 16) - tonumber(b:sub(i, i + 1), 16))
+	end
+	return total
+end
+for i, left in ipairs(index) do
+	for j = i + 1, #index do
+		local right = index[j]
+		local score = 0
+		for _, field in ipairs(fields) do
+			score = score + rgb_distance(left[field], right[field])
+		end
+		assert(
+			score > tolerance * #fields,
+			string.format("%s vs %s too close (%d)", left.name, right.name, score)
+		)
+	end
+end
+
 -- Replies drive the colourscheme, and a later theme replaces an earlier one.
 follow.setup()
 local function osc(slot, colour)

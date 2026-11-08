@@ -9,7 +9,9 @@
 
 local RexFollow = {}
 
-local TOLERANCE = 12 -- summed per-channel difference per colour (8/16-bit rounding)
+-- Per colour, summed |ΔR|+|ΔG|+|ΔB|. Keep below the closest distinct Rex pair
+-- (ember-hollow vs sonoran-dusk score 48 across four colours), so 10×4 = 40.
+local TOLERANCE = 10
 
 ---Colours we ask for and the OSC reply that carries each.
 local FIELDS = { "background", "foreground", "red", "blue" }
@@ -138,5 +140,6 @@ end
 
 -- Exposed for tests.
 RexFollow._parse = parse
+RexFollow._TOLERANCE = TOLERANCE
 
 return RexFollow
