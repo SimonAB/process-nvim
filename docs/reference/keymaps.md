@@ -221,6 +221,7 @@ Table editing operations for markdown and quarto files (table-nvim):
 <Leader>ON      " New note from template
 <Leader>Op      " Paste image into note
 <Leader>Ov      " Toggle Obsidian preview
+<Leader>Os      " Headless vault sync status
 ```
 
 Obsidian [callouts](https://help.obsidian.md/callouts) (`<Leader>O!` then a letter; normal mode inserts below the line, visual mode wraps the range):
@@ -238,6 +239,7 @@ Command-line wrap (optional): `:ObsidianCalloutWrap <type>` with a line range.
 Headless Obsidian Sync (no GUI; while the vault is open in Neovim):
 
 ```vim
+<Leader>Os            " same as :ObsidianSyncStatus
 :ObsidianSyncStatus   " pid, sessions, headless setup, state directory
 :ObsidianSyncCleanup  " stop orphan sync and prune stale session locks
 ```

@@ -1410,6 +1410,14 @@ map("n", "<leader>Ot", safe_cmd("ObsidianTemplate"), { desc = "Insert Obsidian t
 map("n", "<leader>ON", safe_cmd("ObsidianNewFromTemplate"), { desc = "New note from template" })
 map("n", "<leader>Op", paste_obsidian_image, { desc = "Paste image and add two lines" })
 map("n", "<leader>Ov", "<cmd>MarkdownPreviewToggle<CR>", { desc = "Toggle Obsidian preview" })
+map("n", "<leader>Os", function()
+	local ok, sync = pcall(require, "core.obsidian-vault-sync")
+	if not ok then
+		vim.notify("Obsidian vault sync module not available", vim.log.levels.WARN)
+		return
+	end
+	vim.notify(table.concat(sync.status_lines(), "\n"), vim.log.levels.INFO, { title = "Obsidian vault sync" })
+end, { desc = "Obsidian sync status" })
 
 -- Obsidian callouts
 -- Insert Obsidian-style callout blocks (https://help.obsidian.md/callouts).
