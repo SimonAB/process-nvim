@@ -19,9 +19,13 @@
 ### Documentation
 - Add dashboard/file-search and Markdown editing guides to the website; update the README, quick start, keymaps, installation, performance and troubleshooting pages for the current behaviour.
 
+### Obsidian vault sync (headless)
+- `core.obsidian-vault-sync` runs `ob sync --continuous` while the vault is open in Neovim and the Obsidian app is not running; stops on `:cd` away, buffer close, or quit. Commands `:ObsidianSyncStatus` and `:ObsidianSyncCleanup`. One-time `ob login` and `obsidian-headless-sync-setup`.
+
 ### Path repairs
 - Prefer `~/Notebook` in Neovim, with `~/SynologyDrive/Databases/Notebook` as a fallback and the daily snapshot script default; retain environment overrides and legacy locations.
 - Resolve Obsidian file and attachment pickers from the active client vault rather than the plugin defaults.
+- Obsidian.nvim `templates` folder is set only when `Templates/` exists in the vault.
 - Prefer `~/SynologyDrive/Software/Forge` for Forge navigation, retaining `FORGE_DIR` and the older location as fallbacks.
 
 ### Markdown

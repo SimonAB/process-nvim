@@ -7,6 +7,8 @@ Utility scripts for this Neovim configuration. Paths are relative to the repo ro
 | `configure-skim-synctex.sh` | Write Skim inverse-search preferences for VimTeX (`VimtexInverseSearch`) — macOS |
 | `configure-zathura-synctex.sh` | Write Zathura `synctex-editor-command` for VimTeX (`VimtexInverseSearch`) — Linux |
 | `daily-vault-commit.sh` | Commit (and optionally push) the Obsidian vault on a schedule; `install` / `uninstall` for macOS launchd |
+
+Dotfiles `bin/obsidian-headless-sync` (continuous `ob sync`) and `obsidian-headless-sync-setup` are wired from Neovim via `lua/core/obsidian-vault-sync.lua`; vault path logic is shared in `bin/obsidian-vault-path.sh`.
 | `test-shared-theme.lua` | Check shared theme selection, explicit appearance, live refresh and safe fallback |
 | `test-rex-themes.lua` | Check generated Rex colourschemes, OSC reply parsing, theme matching and Rex following |
 | `test-dashboard-recursive.lua` | Check nested text-file discovery, ignore rules, editable-type filtering and file opening |

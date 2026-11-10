@@ -77,21 +77,28 @@ obsidian.setup({
         end,
     },
 
-    -- Templates
-    templates = {
-        folder = "templates",
-        date_format = "%Y-%m-%d",
-        time_format = "%H:%M",
-        -- Custom substitutions
-        substitutions = {
-            yesterday = function()
-                return os.date("%Y-%m-%d", os.time() - 86400)
-            end,
-            tomorrow = function()
-                return os.date("%Y-%m-%d", os.time() + 86400)
-            end,
-        },
-    },
+    -- Templates. Obsidian's core plugin uses "Templates" (.obsidian/templates.json).
+    -- Leave folder unset until that directory exists, or obsidian.nvim errors on startup.
+    templates = (function()
+        local folder = "Templates"
+        local opts = {
+            date_format = "%Y-%m-%d",
+            time_format = "%H:%M",
+            substitutions = {
+                yesterday = function()
+                    return os.date("%Y-%m-%d", os.time() - 86400)
+                end,
+                tomorrow = function()
+                    return os.date("%Y-%m-%d", os.time() + 86400)
+                end,
+            },
+        }
+        local templates_dir = vim.fs.joinpath(get_obsidian_vault_path(), folder)
+        if vim.fn.isdirectory(templates_dir) == 1 then
+            opts.folder = folder
+        end
+        return opts
+    end)(),
 
     -- Completion and navigation
     completion = {
@@ -201,13 +208,11 @@ obsidian.setup({
         },
     },
 
-        -- Callbacks
     callbacks = {
-        post_setup = function(client)
-            -- Called after obsidian.nvim is set up
+        post_setup = function(_client)
             vim.notify("Obsidian.nvim configured for your vault", vim.log.levels.INFO)
+            require("core.obsidian-vault-sync").install()
 
-                        -- Simple autocommand to update date_modified on save
             vim.api.nvim_create_autocmd("BufWritePre", {
                 pattern = "*.md",
                 callback = function()

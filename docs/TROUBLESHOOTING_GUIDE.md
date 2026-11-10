@@ -65,6 +65,11 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 - Large vaults with many unstaged notes keep gitsigns busy.
 - Optional: `scripts/daily-vault-commit.sh` (commit/push on a schedule; `install` for launchd on macOS). The script’s vault resolver prefers `~/SynologyDrive/Databases/Notebook`, then legacy locations. Set `OBSIDIAN_VAULT_PATH` to override it.
 
+#### Obsidian Sync (headless via Neovim)
+- `core.obsidian-vault-sync` starts `obsidian-headless-sync` while the vault is open in Neovim and the Obsidian app is not running. Default vault: `~/Notebook` (same resolver as `core.platform.obsidian_vault_path`).
+- One-time setup: `ob login`, then `obsidian-headless-sync-setup`. Do not run desktop Obsidian Sync and headless `ob` on the same machine at the same time.
+- In Neovim: `:ObsidianSyncStatus`, `:ObsidianSyncCleanup`. Runtime state: `~/.local/state/nvim/obsidian-sync/` (`sync.pid`, `sessions/`, `sync.log`).
+
 #### Markdown preview not working
 - Ensure the plugin is built: check `~/.local/share/nvim/site/pack/core/opt/markdown-preview.nvim/app/bin/`
 - Use `<leader>Kp` to start preview

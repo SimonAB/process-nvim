@@ -235,6 +235,13 @@ Obsidian [callouts](https://help.obsidian.md/callouts) (`<Leader>O!` then a lett
 
 Command-line wrap (optional): `:ObsidianCalloutWrap <type>` with a line range.
 
+Headless Obsidian Sync (no GUI; while the vault is open in Neovim):
+
+```vim
+:ObsidianSyncStatus   " pid, sessions, headless setup, state directory
+:ObsidianSyncCleanup  " stop orphan sync and prune stale session locks
+```
+
 ## Terminal Integration
 
 ### Terminal Management
