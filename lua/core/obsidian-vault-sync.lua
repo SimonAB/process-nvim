@@ -135,7 +135,7 @@ end
 ---@return string|nil
 local function sync_runner()
 	for _, path in ipairs({
-		vim.fn.expand("~/SynologyDrive/etc/dotfiles/bin/obsidian-headless-sync"),
+		vim.fn.expand("~/dotfiles/bin/obsidian-headless-sync"),
 		vim.fn.expand("~/.local/bin/obsidian-headless-sync"),
 	}) do
 		if vim.fn.executable(path) == 1 then
