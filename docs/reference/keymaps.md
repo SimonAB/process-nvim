@@ -240,7 +240,9 @@ Headless Obsidian Sync (no GUI; while the vault is open in Neovim):
 
 ```vim
 <Leader>Os            " same as :ObsidianSyncStatus
+<Leader>OS            " toggle headless sync on/off (persisted)
 :ObsidianSyncStatus   " pid, sessions, headless setup, state directory
+:ObsidianSyncToggle   " toggle, or on|off|enable|disable
 :ObsidianSyncCleanup  " stop orphan sync and prune stale session locks
 ```
 

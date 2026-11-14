@@ -68,7 +68,7 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 #### Obsidian Sync (headless via Neovim)
 - `core.obsidian-vault-sync` starts `obsidian-headless-sync` while the vault is open in Neovim and the Obsidian app is not running. Default vault: `~/Notebook` (same resolver as `core.platform.obsidian_vault_path`).
 - One-time setup: `ob login`, then `obsidian-headless-sync-setup`. Do not run desktop Obsidian Sync and headless `ob` on the same machine at the same time.
-- In Neovim: `:ObsidianSyncStatus`, `:ObsidianSyncCleanup`. Runtime state: `~/.local/state/nvim/obsidian-sync/` (`sync.pid`, `sessions/`, `sync.log`).
+- In Neovim: `:ObsidianSyncStatus`, `:ObsidianSyncToggle` (or `<leader>OS`), `:ObsidianSyncCleanup`. Runtime state: `~/.local/state/nvim/obsidian-sync/` (`sync.pid`, `sessions/`, `sync.log`, `sync-enabled`).
 
 #### Markdown preview not working
 - Ensure the plugin is built: check `~/.local/share/nvim/site/pack/core/opt/markdown-preview.nvim/app/bin/`

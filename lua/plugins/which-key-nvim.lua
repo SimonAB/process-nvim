@@ -90,10 +90,15 @@ if ok then
 	})
 
 	-- which-key groups for localleader keymaps
-	-- These provide display/help for keymaps defined in keymaps.lua
+	-- These provide display/help for keymaps defined in keymaps.lua / keymaps-plugins.lua
 	wk.add({
 		{ "<localleader>l", group = "VimTeX" },
 		{ "<localleader>t", group = "Typst" },
+		{ "<localleader>tp", desc = "Typst preview: Toggle" },
+		{ "<localleader>ts", desc = "Typst preview: Sync cursor" },
+		{ "<localleader>tc", desc = "Compile PDF (typst c)" },
+		{ "<localleader>tw", desc = "Watch file (typst w)" },
+		{ "<localleader>td", desc = "Export DOCX (pandoc typst→docx)" },
 	})
 
 	-- Clarify descriptor for built-in gx without changing its mapping

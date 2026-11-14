@@ -1,7 +1,7 @@
-# Personal spell dictionaries (moved to private/ for privacy)
-
-# Private keys and sensitive data
+# Personal spell dictionaries / api keys (Drive-synced; see ~/SynologyDrive/etc/nvim-private)
+# Match both a real directory and the Synology Drive symlink created by setup.
 private/
+private
 
 # macOS system files
 .DS_Store

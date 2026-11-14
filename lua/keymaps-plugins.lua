@@ -548,6 +548,95 @@ local function typst_watch_current()
 	typst_watch:toggle()
 end
 
+---Export the current Typst file to Word via Pandoc (`pandoc -f typst -t docx`).
+---Uses `references.bib` or `<basename>.bib` beside the source when present.
+---Prefers `scripts/typst-reference.docx` and runs `typst-docx-layout.py` afterwards.
+local function typst_export_docx_current()
+	local current_file = vim.fn.expand("%:p")
+	if current_file == "" then
+		vim.notify("No file is currently open", vim.log.levels.ERROR)
+		return
+	end
+
+	if vim.fn.fnamemodify(current_file, ":e") ~= "typ" then
+		vim.notify("Current file is not a Typst file (.typ)", vim.log.levels.ERROR)
+		return
+	end
+
+	if vim.fn.executable("pandoc") ~= 1 then
+		vim.notify("pandoc not found on PATH", vim.log.levels.ERROR)
+		return
+	end
+
+	local out_file = vim.fn.fnamemodify(current_file, ":r") .. ".docx"
+	local dir = vim.fn.fnamemodify(current_file, ":p:h")
+	local nvim_config = vim.fn.stdpath("config")
+	local reference_doc = nvim_config .. "/scripts/typst-reference.docx"
+	local layout_script = nvim_config .. "/scripts/typst-docx-layout.py"
+
+	local cmd = {
+		"pandoc",
+		"-f",
+		"typst",
+		"-t",
+		"docx",
+		current_file,
+		"-o",
+		out_file,
+	}
+
+	if vim.fn.filereadable(reference_doc) == 1 then
+		table.insert(cmd, "--reference-doc=" .. reference_doc)
+	end
+
+	local bib_candidates = {
+		dir .. "/references.bib",
+		vim.fn.fnamemodify(current_file, ":r") .. ".bib",
+	}
+	for _, bib in ipairs(bib_candidates) do
+		if vim.fn.filereadable(bib) == 1 then
+			table.insert(cmd, "--citeproc")
+			table.insert(cmd, "--bibliography=" .. bib)
+			break
+		end
+	end
+
+	vim.fn.jobstart(cmd, {
+		cwd = dir,
+		on_exit = function(_, exit_code)
+			if exit_code ~= 0 then
+				vim.notify("Failed to export DOCX (pandoc exit " .. exit_code .. ")", vim.log.levels.ERROR)
+				return
+			end
+
+			if vim.fn.filereadable(layout_script) == 1 and vim.fn.executable("python3") == 1 then
+				vim.fn.jobstart({ "python3", layout_script, out_file }, {
+					on_exit = function(_, layout_code)
+						if layout_code == 0 then
+							vim.notify("DOCX exported (laid out): " .. out_file, vim.log.levels.INFO)
+						else
+							vim.notify(
+								"DOCX exported, but layout clean-up failed: " .. out_file,
+								vim.log.levels.WARN
+							)
+						end
+					end,
+				})
+			else
+				vim.notify("DOCX exported: " .. out_file, vim.log.levels.INFO)
+			end
+		end,
+		on_stderr = function(_, data)
+			if data and #data > 0 then
+				local msg = table.concat(data, " ")
+				if vim.trim(msg) ~= "" then
+					vim.notify("pandoc: " .. msg, vim.log.levels.WARN)
+				end
+			end
+		end,
+	})
+end
+
 -- ============================================================================
 -- PLUGIN-DEPENDENT KEYMAPS
 -- ============================================================================
@@ -1376,6 +1465,11 @@ vim.api.nvim_create_autocmd("FileType", {
 		map("n", "<localleader>tc", typst_compile_current, { buffer = bufnr, desc = "Compile PDF (typst c)" })
 
 		map("n", "<localleader>tw", typst_watch_current, { buffer = bufnr, desc = "Watch file (typst w)" })
+
+		map("n", "<localleader>td", typst_export_docx_current, {
+			buffer = bufnr,
+			desc = "Export DOCX (pandoc typst→docx)",
+		})
 	end,
 })
 
@@ -1410,14 +1504,41 @@ map("n", "<leader>Ot", safe_cmd("ObsidianTemplate"), { desc = "Insert Obsidian t
 map("n", "<leader>ON", safe_cmd("ObsidianNewFromTemplate"), { desc = "New note from template" })
 map("n", "<leader>Op", paste_obsidian_image, { desc = "Paste image and add two lines" })
 map("n", "<leader>Ov", "<cmd>MarkdownPreviewToggle<CR>", { desc = "Toggle Obsidian preview" })
+local function obsidian_vault_sync_mod()
+	local sync = package.loaded["core.obsidian-vault-sync"]
+	if sync and type(sync.get) == "function" then
+		return sync.get()
+	end
+	if sync and type(sync.toggle_sync) == "function" then
+		return sync
+	end
+	if sync then
+		package.loaded["core.obsidian-vault-sync"] = nil
+	end
+	sync = require("core.obsidian-vault-sync")
+	if type(sync.get) == "function" then
+		return sync.get()
+	end
+	sync.install()
+	return sync
+end
+
 map("n", "<leader>Os", function()
-	local ok, sync = pcall(require, "core.obsidian-vault-sync")
-	if not ok then
+	local ok, sync = pcall(obsidian_vault_sync_mod)
+	if not ok or not sync then
 		vim.notify("Obsidian vault sync module not available", vim.log.levels.WARN)
 		return
 	end
 	vim.notify(table.concat(sync.status_lines(), "\n"), vim.log.levels.INFO, { title = "Obsidian vault sync" })
 end, { desc = "Obsidian sync status" })
+map("n", "<leader>OS", function()
+	local ok, sync = pcall(obsidian_vault_sync_mod)
+	if not ok or not sync then
+		vim.notify("Obsidian vault sync module not available", vim.log.levels.WARN)
+		return
+	end
+	sync.toggle_sync()
+end, { desc = "Toggle headless Obsidian sync" })
 
 -- Obsidian callouts
 -- Insert Obsidian-style callout blocks (https://help.obsidian.md/callouts).

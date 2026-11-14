@@ -75,6 +75,9 @@ function DocGenerator.generate_keymaps_summary()
 - `<Leader>q`: Close buffer
 - `<Leader>Oc`: Toggle checkbox (Obsidian)
 - `<localleader>tp`: Typst preview toggle
+- `<localleader>tc`: Typst compile PDF
+- `<localleader>tw`: Typst watch
+- `<localleader>td`: Typst export DOCX (pandoc)
 
 ## LSP Navigation
 

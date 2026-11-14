@@ -8,6 +8,7 @@ local exiting = false
 local sync_job = nil
 
 local STATE_SUBDIR = "obsidian-sync"
+local SYNC_ENABLED_FILE = "sync-enabled"
 
 ---@return string
 local function vault_root()
@@ -55,6 +56,21 @@ local function state_dir()
 	local dir = vim.fs.joinpath(vim.fn.stdpath("state"), STATE_SUBDIR)
 	vim.fn.mkdir(dir, "p")
 	return dir
+end
+
+---@return boolean
+local function sync_toggle_on()
+	local file = vim.fs.joinpath(state_dir(), SYNC_ENABLED_FILE)
+	if vim.fn.filereadable(file) ~= 1 then
+		return true
+	end
+	local line = (vim.fn.readfile(file)[1] or ""):lower()
+	return line ~= "0" and line ~= "false" and line ~= "off" and line ~= "no"
+end
+
+---@param enabled boolean
+local function write_sync_toggle(enabled)
+	vim.fn.writefile({ enabled and "1" or "0" }, vim.fs.joinpath(state_dir(), SYNC_ENABLED_FILE))
 end
 
 ---@param pid integer|nil
@@ -273,6 +289,11 @@ local function reconcile()
 		return
 	end
 
+	if not sync_toggle_on() then
+		stop_headless_sync()
+		return
+	end
+
 	start_headless_sync()
 end
 
@@ -295,6 +316,7 @@ function M.status_lines()
 		"Vault: " .. vault,
 		"Using vault (this session): " .. (using_vault() and "yes" or "no"),
 		"Neovim vault sessions: " .. tostring(nvim_sessions_in_vault()),
+		"Sync toggle (headless): " .. (sync_toggle_on() and "on" or "off"),
 		"Obsidian GUI: " .. (gui_running() and "running" or "not running"),
 		"Headless configured: " .. (headless_configured() and "yes" or "no"),
 		"sync.pid: " .. (pid and tostring(pid) or "none"),
@@ -302,6 +324,67 @@ function M.status_lines()
 		"State: " .. state_dir(),
 	}
 	return lines
+end
+
+---@return boolean
+function M.sync_enabled()
+	return sync_toggle_on()
+end
+
+---@param opts? { notify?: boolean }
+---@return boolean enabled New toggle state (on = headless sync may run).
+function M.toggle_sync(opts)
+	opts = opts or {}
+	local enabled = not sync_toggle_on()
+	write_sync_toggle(enabled)
+	if not enabled then
+		stop_headless_sync()
+	end
+	reconcile()
+	if opts.notify ~= false then
+		vim.notify(
+			"Headless vault sync " .. (enabled and "enabled" or "disabled"),
+			vim.log.levels.INFO,
+			{ title = "Obsidian vault sync" }
+		)
+	end
+	return enabled
+end
+
+---@param enabled boolean
+---@param opts? { notify?: boolean }
+function M.set_sync_enabled(enabled, opts)
+	opts = opts or {}
+	local was = sync_toggle_on()
+	write_sync_toggle(enabled)
+	if not enabled then
+		stop_headless_sync()
+	end
+	if was ~= enabled then
+		reconcile()
+	end
+	if opts.notify ~= false and was ~= enabled then
+		vim.notify(
+			"Headless vault sync " .. (enabled and "enabled" or "disabled"),
+			vim.log.levels.INFO,
+			{ title = "Obsidian vault sync" }
+		)
+	end
+end
+
+---Return the current module, reloading when an older copy is still in `package.loaded`.
+---@return table
+function M.get()
+	local cached = package.loaded["core.obsidian-vault-sync"]
+	if cached and type(cached.toggle_sync) == "function" then
+		return cached
+	end
+	if cached then
+		package.loaded["core.obsidian-vault-sync"] = nil
+	end
+	cached = require("core.obsidian-vault-sync")
+	cached.install()
+	return cached
 end
 
 function M.install()
@@ -322,13 +405,39 @@ function M.install()
 	end
 
 	vim.api.nvim_create_user_command("ObsidianSyncStatus", function()
-		vim.notify(table.concat(M.status_lines(), "\n"), vim.log.levels.INFO, { title = "Obsidian vault sync" })
+		local sync = M.get()
+		vim.notify(table.concat(sync.status_lines(), "\n"), vim.log.levels.INFO, { title = "Obsidian vault sync" })
 	end, { desc = "Show headless vault sync state" })
 
 	vim.api.nvim_create_user_command("ObsidianSyncCleanup", function()
-		M.cleanup_stale_state()
+		local sync = M.get()
+		sync.cleanup_stale_state()
 		vim.notify("Vault sync state cleaned up", vim.log.levels.INFO)
 	end, { desc = "Stop orphan headless sync and prune stale locks" })
+
+	vim.api.nvim_create_user_command("ObsidianSyncToggle", function(cmd)
+		local sync = M.get()
+		local arg = (cmd.fargs[1] or ""):lower()
+		if arg == "" then
+			sync.toggle_sync()
+			return
+		end
+		if vim.tbl_contains({ "on", "enable", "yes", "1", "true" }, arg) then
+			sync.set_sync_enabled(true)
+			return
+		end
+		if vim.tbl_contains({ "off", "disable", "no", "0", "false" }, arg) then
+			sync.set_sync_enabled(false)
+			return
+		end
+		vim.notify("Usage: ObsidianSyncToggle [on|off|enable|disable]", vim.log.levels.WARN)
+	end, {
+		desc = "Toggle headless vault sync (persisted under state dir)",
+		nargs = "?",
+		complete = function()
+			return { "on", "off", "enable", "disable" }
+		end,
+	})
 
 	reconcile()
 end
