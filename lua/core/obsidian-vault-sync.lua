@@ -1,4 +1,6 @@
----Headless Obsidian Sync while Neovim uses the vault (no Obsidian GUI).
+---Headless Obsidian Sync while Neovim uses a Sync-managed vault (no Obsidian GUI).
+---Only vaults listed by `ob sync-list-local` count; the platform Notebook fallback
+---(e.g. Synology Drive) does not start sync on its own.
 ---State: `stdpath("state")/obsidian-sync/` (`sync.pid`, `sessions/`, `sync.log`).
 local M = {}
 
@@ -10,10 +12,10 @@ local sync_job = nil
 local STATE_SUBDIR = "obsidian-sync"
 local SYNC_ENABLED_FILE = "sync-enabled"
 
----@return string
-local function vault_root()
-	return require("core.platform").obsidian_vault_path()
-end
+---Cached `ob sync-list-local` paths (normalised).
+---@type { paths: string[], fetched_at: number }|nil
+local managed_cache = nil
+local MANAGED_CACHE_TTL_SEC = 30
 
 ---@param path string|nil
 ---@return string
@@ -21,34 +23,113 @@ local function normalise(path)
 	if not path or path == "" then
 		return ""
 	end
-	return vim.fs.normalize(vim.fn.fnamemodify(path, ":p")):gsub("/+$", "")
+	local absolute = vim.fs.normalize(vim.fn.fnamemodify(path, ":p")):gsub("/+$", "")
+	if absolute == "" then
+		return ""
+	end
+	-- Resolve symlinks when present so ~/Notebook and its real path match.
+	return vim.fn.resolve(absolute):gsub("/+$", "")
+end
+
+---Vault roots linked for headless Sync on this machine (`ob sync-list-local`).
+---@param force boolean|nil
+---@return string[]
+local function managed_vault_roots(force)
+	local now = vim.uv.hrtime() / 1e9
+	if not force and managed_cache and (now - managed_cache.fetched_at) < MANAGED_CACHE_TTL_SEC then
+		return managed_cache.paths
+	end
+
+	local paths = {}
+	local ob = vim.fn.exepath("ob")
+	if ob == "" then
+		managed_cache = { paths = paths, fetched_at = now }
+		return paths
+	end
+
+	local result = vim.system({ ob, "sync-list-local", "--json" }, { text = true }):wait()
+	if result.code == 0 and result.stdout and result.stdout ~= "" then
+		local ok, decoded = pcall(vim.json.decode, result.stdout)
+		if ok and type(decoded) == "table" then
+			local vaults = decoded.vaults or decoded
+			if type(vaults) == "table" then
+				for _, entry in ipairs(vaults) do
+					local raw = type(entry) == "table" and entry.path or nil
+					local root = normalise(raw)
+					if root ~= "" then
+						paths[#paths + 1] = root
+					end
+				end
+			end
+		end
+	end
+
+	-- Fall back to plain-text listing when --json is unavailable.
+	if #paths == 0 then
+		result = vim.system({ ob, "sync-list-local" }, { text = true }):wait()
+		if result.code == 0 and result.stdout and not result.stdout:find("No vaults configured", 1, true) then
+			for line in result.stdout:gmatch("[^\r\n]+") do
+				local raw = line:match("^%s*Path:%s*(%S.+)%s*$")
+				local root = normalise(raw)
+				if root ~= "" then
+					paths[#paths + 1] = root
+				end
+			end
+		end
+	end
+
+	managed_cache = { paths = paths, fetched_at = now }
+	return paths
 end
 
 ---@param path string|nil
----@return boolean
-local function path_in_vault(path)
-	local root = normalise(vault_root())
+---@return string|nil managed_root
+local function managed_root_for_path(path)
 	local candidate = normalise(path)
-	if root == "" or candidate == "" then
-		return false
+	if candidate == "" then
+		return nil
 	end
-	return candidate == root or vim.startswith(candidate, root .. "/")
+	for _, root in ipairs(managed_vault_roots()) do
+		if candidate == root or vim.startswith(candidate, root .. "/") then
+			return root
+		end
+	end
+	return nil
 end
 
 ---@return boolean
 local function using_vault()
-	if path_in_vault(vim.fn.getcwd()) then
+	if managed_root_for_path(vim.fn.getcwd()) then
 		return true
 	end
 	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(bufnr) then
 			local name = vim.api.nvim_buf_get_name(bufnr)
-			if name ~= "" and path_in_vault(name) then
+			if name ~= "" and managed_root_for_path(name) then
 				return true
 			end
 		end
 	end
 	return false
+end
+
+---Managed vault this session is editing, if any.
+---@return string|nil
+local function active_managed_vault()
+	local from_cwd = managed_root_for_path(vim.fn.getcwd())
+	if from_cwd then
+		return from_cwd
+	end
+	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(bufnr) then
+			local name = vim.api.nvim_buf_get_name(bufnr)
+			local root = name ~= "" and managed_root_for_path(name) or nil
+			if root then
+				return root
+			end
+		end
+	end
+	return nil
 end
 
 ---@return string
@@ -134,20 +215,6 @@ local function gui_running()
 	return vim.system({ "pgrep", "-x", "Obsidian" }, { text = true }):wait().code == 0
 end
 
----@return boolean
-local function headless_configured()
-	local ob = vim.fn.exepath("ob")
-	if ob == "" then
-		return false
-	end
-	local vault = normalise(vault_root())
-	local result = vim.system({ ob, "sync-list-local" }, { text = true }):wait()
-	if result.code ~= 0 or not result.stdout or result.stdout:find("No vaults configured", 1, true) then
-		return false
-	end
-	return result.stdout:find(vault, 1, true) ~= nil
-end
-
 ---@return string|nil
 local function sync_runner()
 	for _, path in ipairs({
@@ -170,10 +237,11 @@ local function warn_once(message)
 	vim.notify(message, vim.log.levels.WARN)
 end
 
-local function setup_hint()
+---@param vault string
+local function setup_hint(vault)
 	return string.format(
 		'Headless Obsidian Sync is not ready. Run: ob login && obsidian-headless-sync-setup "%s"',
-		normalise(vault_root())
+		vault
 	)
 end
 
@@ -212,13 +280,12 @@ function M.cleanup_stale_state()
 	end
 end
 
-local function start_headless_sync()
-	if alive(read_sync_pid()) or sync_job then
+---@param vault string
+local function start_headless_sync(vault)
+	if vault == "" then
 		return
 	end
-
-	if not headless_configured() then
-		warn_once(setup_hint())
+	if alive(read_sync_pid()) or sync_job then
 		return
 	end
 
@@ -228,7 +295,6 @@ local function start_headless_sync()
 		return
 	end
 
-	local vault = normalise(vault_root())
 	local log_file = vim.fs.joinpath(state_dir(), "sync.log")
 	vim.fn.writefile({}, log_file)
 
@@ -250,7 +316,7 @@ local function start_headless_sync()
 			if code == 0 then
 				return
 			end
-			local detail = setup_hint()
+			local detail = setup_hint(vault)
 			if vim.fn.filereadable(log_file) == 1 then
 				local tail = table.concat(vim.fn.readfile(log_file), " ")
 				if tail ~= "" then
@@ -276,7 +342,8 @@ local function start_headless_sync()
 end
 
 local function reconcile()
-	set_session_lock(using_vault())
+	local vault = active_managed_vault()
+	set_session_lock(vault ~= nil)
 	if nvim_sessions_in_vault() == 0 then
 		if stop_headless_sync() then
 			vim.notify("Vault sync stopped (headless)", vim.log.levels.INFO)
@@ -294,7 +361,22 @@ local function reconcile()
 		return
 	end
 
-	start_headless_sync()
+	-- Another Neovim session may hold the lock; only start when this session is in-vault.
+	if not vault then
+		return
+	end
+
+	if vim.fn.isdirectory(vault) ~= 1 then
+		warn_once(
+			string.format(
+				"Obsidian Sync vault path is missing: %s (fix the link or re-run obsidian-headless-sync-setup)",
+				vault
+			)
+		)
+		return
+	end
+
+	start_headless_sync(vault)
 end
 
 local function on_vim_exit()
@@ -310,15 +392,19 @@ end
 
 ---@return string[]
 function M.status_lines()
-	local vault = normalise(vault_root())
+	local managed = managed_vault_roots(true)
+	local active = active_managed_vault()
+	local platform = normalise(require("core.platform").obsidian_vault_path())
 	local pid = read_sync_pid()
+	local managed_display = #managed == 0 and "(none)" or table.concat(managed, ", ")
 	local lines = {
-		"Vault: " .. vault,
-		"Using vault (this session): " .. (using_vault() and "yes" or "no"),
+		"Platform Notebook path: " .. platform,
+		"Sync-managed vaults: " .. managed_display,
+		"Active managed vault (this session): " .. (active or "(none)"),
+		"Using managed vault (this session): " .. (using_vault() and "yes" or "no"),
 		"Neovim vault sessions: " .. tostring(nvim_sessions_in_vault()),
 		"Sync toggle (headless): " .. (sync_toggle_on() and "on" or "off"),
 		"Obsidian GUI: " .. (gui_running() and "running" or "not running"),
-		"Headless configured: " .. (headless_configured() and "yes" or "no"),
 		"sync.pid: " .. (pid and tostring(pid) or "none"),
 		"Sync process: " .. (pid and alive(pid) and "running" or "stopped"),
 		"State: " .. state_dir(),
@@ -394,7 +480,7 @@ function M.install()
 	vim.api.nvim_create_autocmd({ "DirChanged", "FocusGained", "BufEnter", "BufDelete", "BufWipeout" }, {
 		group = group,
 		callback = reconcile,
-		desc = "Headless Obsidian Sync while the vault is open in Neovim",
+		desc = "Headless Obsidian Sync while a Sync-managed vault is open in Neovim",
 	})
 	for _, event in ipairs({ "VimLeavePre", "QuitPre", "VimLeave" }) do
 		vim.api.nvim_create_autocmd(event, {

@@ -66,8 +66,8 @@ Common issues and solutions. Utility scripts are listed in [scripts/README.md](h
 - Optional: `scripts/daily-vault-commit.sh` (commit/push on a schedule; `install` for launchd on macOS). The script’s vault resolver prefers `~/SynologyDrive/Databases/Notebook`, then legacy locations. Set `OBSIDIAN_VAULT_PATH` to override it.
 
 #### Obsidian Sync (headless via Neovim)
-- `core.obsidian-vault-sync` starts `obsidian-headless-sync` while the vault is open in Neovim and the Obsidian app is not running. Default vault: `~/Notebook` (same resolver as `core.platform.obsidian_vault_path`).
-- One-time setup: `ob login`, then `obsidian-headless-sync-setup`. Do not run desktop Obsidian Sync and headless `ob` on the same machine at the same time.
+- `core.obsidian-vault-sync` starts `obsidian-headless-sync` only while a vault from `ob sync-list-local` is open in Neovim and the Obsidian app is not running. Editing the Synology Drive Notebook (or any non-linked path) does not start headless sync.
+- One-time setup: `ob login`, then `obsidian-headless-sync-setup` with the path you want linked (often `~/Notebook`). Do not run desktop Obsidian Sync and headless `ob` on the same machine at the same time.
 - In Neovim: `:ObsidianSyncStatus`, `:ObsidianSyncToggle` (or `<leader>OS`), `:ObsidianSyncCleanup`. Runtime state: `~/.local/state/nvim/obsidian-sync/` (`sync.pid`, `sessions/`, `sync.log`, `sync-enabled`).
 
 #### Markdown preview not working
