@@ -156,7 +156,7 @@ ConfigManager.lsp.servers = {
 			},
 		},
 	},
-	tinymist = {}, -- Typst LSP
+	tinymist = {}, -- Typst LSP (system: brew / pacman; not Mason)
 	lua_ls = {
 		settings = {
 			Lua = {

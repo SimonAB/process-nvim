@@ -2,6 +2,9 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### Typst / tinymist
+- Use a single system `tinymist` for LSP, CLI, and typst-preview (Homebrew on macOS, `pacman` on Arch/Omarchy). Drop Mason and typst-preview duplicate downloads; point `dependencies_bin.tinymist` at `PATH`.
+
 ### Shared themes (experimental)
 - Read a shared light/dark theme selection for Neovim and refresh running instances. Coordinate with Ghostty and the current Rex pane through the parent dotfiles theme switcher; retain local defaults when no valid selection exists.
 

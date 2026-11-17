@@ -156,9 +156,9 @@ vim.defer_fn(function()
 		ensure_installed = {
 			-- Core language servers for your academic workflow
 			-- "julials",           -- Julia language server (managed manually via nvim-lspconfig)
+			-- tinymist: system package (brew / pacman), not Mason
 			"pyright",           -- Python language server (preferred)
 			"texlab",            -- LaTeX language server
-            "tinymist",          -- Typst language server
 			"lua_ls",            -- Lua language server
 			"bashls",            -- Bash language server
 			"jsonls",            -- JSON language server
@@ -181,6 +181,10 @@ vim.defer_fn(function()
 			-- Do not let Mason configure Julia; handled manually in nvim-lspconfig
 			["julials"] = function()
 				-- Explicitly do nothing - custom config in nvim-lspconfig.lua will handle it
+			end,
+
+			-- tinymist is system-managed (brew / pacman); never enable via Mason handlers
+			["tinymist"] = function()
 			end,
 
 			-- Custom handler for Python LSP
@@ -255,6 +259,11 @@ vim.defer_fn(function()
 			end,
 		},
 	})
+
+		-- Typst LSP: Homebrew (macOS) or pacman (Arch/Omarchy), not Mason
+		if vim.fn.executable("tinymist") == 1 then
+			vim.lsp.enable("tinymist")
+		end
 	else
 		vim.notify("❌ Mason LSP Config not available - LSP server installation will be manual", vim.log.levels.WARN)
 	end

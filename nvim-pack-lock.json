@@ -13,7 +13,7 @@
       "src": "https://github.com/rafi/awesome-vim-colorschemes"
     },
     "blink.cmp": {
-      "rev": "7b31e1b6497be70f620bbad83a789929248697ac",
+      "rev": "3d3631f641e6e9b60066f269f435d23c524ceeb0",
       "src": "https://github.com/Saghen/blink.cmp"
     },
     "blink.lib": {
@@ -73,7 +73,7 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "f9ac12d7cbd2563cfc2cce9a8152fc8df2ad0d6f",
+      "rev": "174eb9b9d5d66254966b9d52ea51b996317e51f6",
       "src": "https://github.com/echasnovski/mini.nvim"
     },
     "nord-vim": {
@@ -81,15 +81,15 @@
       "src": "https://github.com/arcticicestudio/nord-vim"
     },
     "nvim-lspconfig": {
-      "rev": "443d92c6bea761ab54cdde46fb197a2b4d614bdd",
+      "rev": "6a3ddecf60e19f164390308f502e67f3199f58e8",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
-      "rev": "5cc8d425c2bf3c09041a2db3cfff6197e2dce34d",
+      "rev": "dbc9d96a3633c2de85f409416ebd4a3aacf4220a",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {
-      "rev": "19bdfc04f40ed2ccb3340591d125f759b0406875",
+      "rev": "b706d642dd20d0922e7e92365dc73617f0fdb4ea",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-web-devicons": {
@@ -153,7 +153,7 @@
       "src": "https://github.com/folke/trouble.nvim"
     },
     "typst-preview.nvim": {
-      "rev": "1c2e19486397be1c580b560fc50ee36abe329c46",
+      "rev": "b231e0e318378782b210ab57aaf7d81d3b0eea12",
       "src": "https://github.com/chomosuke/typst-preview.nvim"
     },
     "vimtex": {

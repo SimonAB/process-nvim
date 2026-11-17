@@ -19,11 +19,12 @@ Mason manages LSP servers. Settings configured for research and document prepara
 This installs the core academic servers:
 - **Python**: pyright (recommended)
 - **LaTeX**: texlab
-- **Typst**: tinymist
 - **Lua**: lua_ls
 - **Bash**: bashls
 - **Markdown**: marksman
 - **JSON/YAML**: jsonls, yamlls
+
+**Typst (`tinymist`)** is not installed via Mason. Use the system package instead: `brew install tinymist` on macOS, or `sudo pacman -S tinymist` on Arch/Omarchy. Neovim enables it when `tinymist` is on `PATH`.
 
 ### Full Install
 
@@ -127,7 +128,7 @@ settings = {
 | Python | pyright | Microsoft's Python LSP |
 | Python | pylsp | Python LSP Server |
 | LaTeX | texlab | LaTeX LSP |
-| Typst | tinymist | Typst LSP |
+| Typst | tinymist | Typst LSP (system: brew / pacman; not Mason) |
 | Julia | julials | Julia LSP |
 | R | r_language_server | R LSP |
 | Lua | lua_ls | Lua LSP |

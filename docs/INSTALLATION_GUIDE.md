@@ -297,23 +297,28 @@ In Neovim: `<Space>Kp` to start preview
 #### macOS
 
 ```bash
-# Typst compiler
-brew install typst
+# Typst compiler and language server (LSP, preview, CLI)
+brew install typst tinymist
 
 # Verify installation
 typst --version
+tinymist --version
 ```
 
-#### Arch Linux
+#### Arch Linux / Omarchy
 
 ```bash
-# Typst compiler (available in AUR)
+# Typst compiler (AUR)
 yay -S typst
 # or
 paru -S typst
 
+# Typst language server (official extra repo; not Mason)
+sudo pacman -S tinymist
+
 # Verify installation
 typst --version
+tinymist --version
 ```
 
 Test Typst:
@@ -321,7 +326,7 @@ Test Typst:
 nvim test.typ
 ```
 
-In Neovim: `\tp` to toggle preview, `\tc` to compile, `\tw` to watch.
+In Neovim: `\tp` to toggle preview, `\tc` to compile, `\tw` to watch. Preview and the Typst LSP both use the system `tinymist` on `PATH`.
 
 **Monorepo / shared packages**: compile, watch, and preview pass `--root` from `core.typst-project`. Set `TYPST_ROOT` to force a root, or place `typst.toml` (or a `shared/typst/` directory) at the project root so nested `.typ` files resolve imports correctly.
 

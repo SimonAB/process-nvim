@@ -151,7 +151,7 @@ Buffer-local on `typ` / `typst` files (`<localleader>` is typically `\`):
 <localleader>tw " Watch file (`typst watch --root …`, ToggleTerm)
 ```
 
-Project root is resolved by `core.typst-project`: `TYPST_ROOT` if set, else the nearest ancestor with `typst.toml` or `shared/typst/`, else the file’s directory. Preview and compile/watch use that root so monorepo layouts (shared packages) work without manual `--root` flags.
+Project root is resolved by `core.typst-project`: `TYPST_ROOT` if set, else the nearest ancestor with `typst.toml` or `shared/typst/`, else the file’s directory. Preview and compile/watch use that root so monorepo layouts (shared packages) work without manual `--root` flags. Preview and the Typst LSP share system `tinymist` on `PATH` (not Mason).
 
 ### Markdown/Quarto
 ```vim

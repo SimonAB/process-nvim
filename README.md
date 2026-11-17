@@ -11,7 +11,7 @@ process-nvim is a Neovim configuration for research writing and scientific compu
 - LaTeX: VimTeX, bidirectional SyncTeX (Skim). On macOS, inverse search raises Rex.
 - Markdown: live preview, Obsidian, cursor peeks for images, PDFs, and web links; filename labels for empty image descriptions on save
 - Quarto: code execution (R, Python, Julia)
-- Typst: preview and CLI compile/watch (`typst c` / `typst w`)
+- Typst: preview (typst-preview.nvim) and CLI compile/watch (`typst c` / `typst w`); LSP and preview use system `tinymist` (Homebrew / pacman), not Mason
 
 ### Scientific computing
 
@@ -21,7 +21,7 @@ process-nvim is a Neovim configuration for research writing and scientific compu
 
 ### Development environment
 
-- LSP: 15+ languages (Mason)
+- LSP: 15+ languages (mostly Mason; Typst via system `tinymist`)
 - Completion: blink.cmp (with blink.lib)
 - Terminal: code-block detection
 - Git: GitSigns, LazyGit
@@ -207,7 +207,7 @@ vim.keymap.set("n", "<leader>custom", ":CustomCommand<CR>",
 
 ### LSP Configuration
 
-Install language servers via Mason:
+Install most language servers via Mason. For Typst, install system `tinymist` instead (`brew install tinymist` on macOS, `sudo pacman -S tinymist` on Arch/Omarchy).
 
 ```vim
 :Mason                    " Open Mason interface

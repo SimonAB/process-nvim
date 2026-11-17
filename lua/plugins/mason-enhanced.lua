@@ -163,7 +163,7 @@ function MasonUI.install_academic_servers()
 	local academic_servers = {
 		"pyright",     -- Python
 		"texlab",      -- LaTeX
-		"tinymist",    -- Typst
+		-- tinymist: system package (brew / pacman), not Mason
 		"lua_ls",      -- Lua
 		"bashls",      -- Bash
 		"marksman",    -- Markdown
@@ -179,8 +179,8 @@ end
 -- Install all recommended servers
 function MasonUI.install_all_recommended()
 	local all_servers = {
-		-- Core LSP servers
-		"pyright", "texlab", "tinymist", "lua_ls", "bashls",
+		-- Core LSP servers (tinymist is system-managed: brew / pacman)
+		"pyright", "texlab", "lua_ls", "bashls",
 		"marksman", "jsonls", "yamlls", "html", "cssls",
 		"ts_ls", "r_language_server"
 	}

@@ -631,27 +631,25 @@ If you encounter patterns not covered here or need clarification:
 
 ## Learned User Preferences
 
-- Prefer transparent which-key-style floats (body and border) with no buffer glyph bleed-through; strongly reject opaque float backgrounds.
+- Prefer transparent which-key-style floats (body and border) with no buffer glyph bleed-through; strongly reject opaque float backgrounds. Prefer screenshot-driven iteration for float transparency; do not “improve” a working transparent look into opacity.
 - Keep floating UI consistent across which-key, Mason, Telescope (including grep preview), theme picker, plugin-update, floating terminal, and media/URL peeks; prefer shared helpers over one-off winhl tweaks.
 - Theme appearance should track macOS light/dark (auto-dark-mode). The day-to-day terminal is Rex. Avoid yellow-ish light themes; dark preference aligns with Catppuccin Mocha, light with high-contrast options (e.g. GitHub Light High Contrast / Flexoki Light).
 - When reverting a brittle fix, retain unrelated speed and robustness improvements unless asked to discard them.
-- Prefer screenshot-driven iteration for float transparency; do not “improve” a working transparent look into opacity.
+- Ask before unilateral config or architectural decisions (for example swapping binary owners or installer policy); do not silently change setup.
 - Finish feature work with docs/changelog updates when relevant; commit and push only when explicitly asked.
 - Prefer cursor/popup media peeks over inline embeds so previews do not shift lines, flicker, or loop on refresh.
 - Media/URL peeks: normal mode only (not visual modes — peeks must not cancel selections); dismiss with Esc; open externally with Enter (avoid `o` / `Ctrl-o` clashes with Vim navigation); favour wide readable popups (≈70% window width, content-centred, height fits image; PDFs fit page width with multipage scroll).
 - For website peeks, keep strong Open Graph images when they work; when OG/icons are missing, use a Microlink **landscape mobile** viewport screenshot (`isMobile` + `isLandscape`), not a cropped desktop thumbnail.
-- Prefer a minimal lualine statusline: no LSP status; keep filetype and separate conditional indicators (macro recording, visual selection size with units and word count, search count, spell language); keep original `┃` / powerline separators — do not merge extras into one segment.
-- Show spell language as flag emoji (🇬🇧 for `en_gb`, 🇫🇷 for `fr`), not EN/FR text.
-- Disable native `showmode`, `showcmd`, and `shortmess` `S` so lualine owns mode, selection, and search display without duplicate echo below the bar.
+- Prefer a minimal lualine statusline: no LSP status; keep filetype and separate conditional indicators (macro recording, visual selection size with units and word count, search count, spell language as flag emoji 🇬🇧/`en_gb` 🇫🇷/`fr`); keep original `┃` / powerline separators — do not merge extras into one segment. Disable native `showmode`, `showcmd`, and `shortmess` `S` so lualine owns mode, selection, and search without duplicate echo.
 
 ## Learned Workspace Facts
 
-- This repo is the nested Neovim config at `~/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features such as multicursor/graphics under active adoption). Track `nvim-pack-lock.json` in git — it is the `'packlockfile'` pin list; commit it after plugin updates.
+- Canonical live config is `~/dotfiles/config/nvim` (vim.pack; Neovim 0.12+ required, with 0.13-dev features under active adoption). The SynologyDrive tree is archived — edit and commit in `~/dotfiles`. Track `nvim-pack-lock.json` in git as the `'packlockfile'` pin list; commit it after plugin updates.
 - Flexoki colourscheme is loaded from the fork `SimonAB/flexoki-neovim` (not stock kepano), including transparent editor/float options. Shared themes also include 41 Rex-adapted `rex-*` schemes (from Rex `themes.json`) with ThemeManager follow matching.
 - CodeCompanion ACP is wired for Cursor and local Ollama; AI keymaps live under the `<leader>A` which-key group.
 - Julia REPL workflow uses Iron / `<leader>J` (e.g. `<leader>Jrv`); OhMyREPL colours should follow the terminal; `# %%` cells are supported for sending code; watch for bracket auto-pair glitches when sending `[` lines to the REPL. LanguageServer lives in the `@nvim-lspconfig` env — `:JuliaLspUpdate` for release, `:JuliaLspUpdateDev` for `main`.
 - LaTeX Skim inverse/forward search lives under `scripts/`. On macOS, inverse search raises Rex (bundle id `com.superlogical.rex`) and selects the session and pane that own that Neovim (`REX_SESSION` / `REX_BLOCK`); forward search keeps focus in the terminal (`vimtex_view_skim_activate = 0`). Linux Zathura still focuses the Hyprland Ghostty window. VimTeX proofreading macros (`\add{}`, `\verify{}`, `\edit{}`, etc.) are registered via `g:vimtex_syntax_custom_cmds` in `lua/plugins/vimtex.lua` (with colours on `texCmdC*` / `texC*Arg`); call `vimtex#syntax#core#init_custom()` after init when no syntax package loaded, and avoid hand-rolled `containedin=ALL` regions / `syntax sync fromstart` thrash on long paragraphs.
-- Floating-window styling is centralised via theme helpers (e.g. which-key float winhl) so popups stay aligned after theme switches.
+- tinymist is system-managed on PATH (Homebrew on macOS, pacman on Omarchy): not installed via Mason; typst-preview uses `dependencies_bin.tinymist = "tinymist"` so preview, LSP, and CLI share one binary.
 - Dashboard shortcuts reserve letter movement (e.g. `lj`) and map `q` to quit (not merely close buffer).
 - VitePress docs live under `docs/` (live site: simonab.github.io/process-nvim); `.cursor/` and `.vscode/` are gitignored in this repo.
 - Markdown/Obsidian media peeks use image.nvim plus `vim-ui-img` helpers (`<leader>Ki` / `Kx` / `Ko`): raster embeds, PDF pages via pdftoppm (cached ~24h), and HTTP(S) link peeks (OG image or page screenshot). `image.nvim` is a Kitty backend only; stock document integrations are disabled in `lua/plugins/image-nvim.lua` (themed cursor peek handles previews).

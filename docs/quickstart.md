@@ -78,8 +78,8 @@ brew install --cask mactex-no-gui   # or mactex for full installation
 # PDF viewer for LaTeX sync
 brew install --cask skim
 
-# Typst typesetting
-brew install typst
+# Typst typesetting and language server
+brew install typst tinymist
 
 # Julia programming (optional)
 brew install juliaup
@@ -101,8 +101,9 @@ sudo pacman -S texlive-most texlive-lang
 # PDF viewer for LaTeX sync
 sudo pacman -S zathura zathura-pdf-mupdf
 
-# Typst typesetting (AUR)
+# Typst typesetting (AUR) and language server (official repos)
 yay -S typst
+sudo pacman -S tinymist
 
 # Julia programming (optional, AUR)
 yay -S julia-bin
