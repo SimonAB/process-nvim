@@ -8,7 +8,9 @@ if ok then
 	typst_preview.setup({
 		debug = false,
 		port = 0, -- Use random port
-		invert_colors = "never",
+		-- Follow the browser dark mode. The plugin always passes this flag;
+		-- its own default is "never", which keeps the preview on the light palette.
+		invert_colors = "auto",
 		follow_cursor = true,
 		extra_args = nil,
 		-- System tinymist (Homebrew on macOS, pacman on Arch/Omarchy); skip plugin download.
