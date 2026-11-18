@@ -224,6 +224,11 @@ Table editing operations for markdown and quarto files (table-nvim):
 <Leader>Os      " Headless vault sync status
 ```
 
+`<Leader>Op` needs image data on the system clipboard (on macOS, `pngpaste` exports it).
+Copy the image itself or take a screenshot to the clipboard; copying a filename or URL
+does not provide image data. Two blank lines are added only after an image is inserted.
+If nothing is pasted, check `:messages` for the clipboard error.
+
 Obsidian [callouts](https://help.obsidian.md/callouts) (`<Leader>O!` then a letter; normal mode inserts below the line, visual mode wraps the range):
 
 ```vim

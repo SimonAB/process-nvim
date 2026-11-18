@@ -99,13 +99,20 @@ end
 ---Paste an image into the Obsidian vault and insert a link, then add two blank lines.
 ---Prefers obsidian.nvim's own paste command/utilities; falls back to platform clipboard tools.
 local function paste_obsidian_image()
+	local bufnr = vim.api.nvim_get_current_buf()
+	if not vim.api.nvim_buf_is_valid(bufnr) or not vim.bo[bufnr].modifiable then
+		return
+	end
+	local changedtick = vim.api.nvim_buf_get_changedtick(bufnr)
 	local used_obsidian = false
 
 	if vim.fn.exists(":ObsidianPasteImg") == 2 then
-		local ok = pcall(vim.cmd, "ObsidianPasteImg")
-		if ok then
-			used_obsidian = true
+		local ok, err = pcall(vim.cmd, "ObsidianPasteImg")
+		if not ok then
+			vim.notify("Failed to paste image: " .. tostring(err), vim.log.levels.ERROR)
+			return
 		end
+		used_obsidian = true
 	else
 		local ok, obsidian = pcall(require, "obsidian")
 		if ok then
@@ -128,6 +135,12 @@ local function paste_obsidian_image()
 	end
 
 	if used_obsidian then
+		-- Obsidian logs empty clipboards and cancelled pastes without raising an error.
+		if not vim.api.nvim_buf_is_valid(bufnr)
+			or vim.api.nvim_get_current_buf() ~= bufnr
+			or vim.api.nvim_buf_get_changedtick(bufnr) == changedtick then
+			return
+		end
 		vim.cmd("put =''")
 		vim.cmd("put =''")
 		return

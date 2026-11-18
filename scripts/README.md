@@ -16,6 +16,7 @@ Dotfiles `bin/obsidian-headless-sync` (continuous `ob sync`) and `obsidian-headl
 | `test-dashboard-async-ui.lua` | Check dashboard refresh, directory isolation and shortcut rebinding |
 | `test-telescope-modified.lua` | Check modification-date sorting and fuzzy-search delegation |
 | `test-markdown-image-alt.lua` | Check filename-derived image labels, code exclusions and save-time insertion |
+| `test-obsidian-paste.lua` | Check empty clipboard, command errors and successful image-paste spacing |
 | `test-julia-lsp.lua` | Check Julia LSP initialisation, literal project paths and hover |
 | `test-config.sh` | Headless checks (e.g. CodeCompanion commands after plugin load) |
 | `test-markdown-preview.lua` | Markdown preview plugin smoke test |

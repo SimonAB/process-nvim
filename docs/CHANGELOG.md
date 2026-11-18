@@ -2,6 +2,9 @@
 
 ## [Latest] - Neovim 0.13-dev adoption
 
+### Obsidian image paste
+- Add two blank lines after `<leader>Op` only when the plugin inserts an image. Leave the buffer unchanged for empty clipboards or cancelled pastes, and show command errors instead of hiding them behind a fallback attempt.
+
 ### Typst / tinymist
 - Use a single system `tinymist` for LSP, CLI, and typst-preview (Homebrew on macOS, `pacman` on Arch/Omarchy). Drop Mason and typst-preview duplicate downloads; point `dependencies_bin.tinymist` at `PATH`.
 
